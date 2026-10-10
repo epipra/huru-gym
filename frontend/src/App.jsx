@@ -1,3 +1,4 @@
+import { ProGate, ProScreen } from './components/HuruPro.jsx'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
 import { useStore } from './store/useStore.js'
@@ -223,8 +224,9 @@ function Shell() {
               {/* The Coach screens gate themselves on the instance config; the routes exist
                   unconditionally so a deep link from a notification lands somewhere sane
                   rather than on the catch-all. */}
-              <Route path="/coach" element={<CoachChat />} />
-              <Route path="/coach/intake" element={<CoachIntake />} />
+              <Route path="/coach" element={<ProGate><CoachChat /></ProGate>} />
+              <Route path="/coach/intake" element={<ProGate><CoachIntake /></ProGate>} />
+              <Route path="/pro" element={<ProScreen />} />
               <Route path="/coach/proposal" element={<Navigate to="/coach" replace />} />
               <Route path="/coach/setup" element={<CoachSetup />} />
               <Route path="/admin" element={user?.admin ? <Admin /> : <Navigate to="/home" replace />} />

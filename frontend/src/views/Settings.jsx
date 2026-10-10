@@ -1,3 +1,4 @@
+import { ProRow } from '../components/HuruPro.jsx'
 import { APP_NAME, BRANDED, SOURCE_URL, EXERCISE_MEDIA } from '../lib/brand.js'
 import { useEffect, useRef, useState, forwardRef, useSyncExternalStore } from 'react'
 import { useNavigate, useParams, useLocation, Navigate } from 'react-router-dom'
@@ -963,6 +964,7 @@ function SettingsRoot({ ctx, preview, open, user, sync, home, go }) {
           <Icon name="chevronRight" className="lrow-c" />
         </button>
       </Section>
+      <ProRow />
       {ROOT_GROUPS.map(g => g.filter(id => pageVisible(id, ctx))).filter(g => g.length).map(g => (
         <Section key={g[0]}>
           {g.map(id => <Row key={id} icon={PAGES[id].icon} iconTint={PAGES[id].tint} title={t(PAGES[id].title)}
