@@ -1,3 +1,4 @@
+import { EXERCISE_MEDIA } from '../lib/brand.js'
 import { useState } from 'react'
 import { imgSrc, gifSrc, isVideoSrc, isCustomEx, figureOf } from '../lib/exercises.js'
 import { useStore } from '../store/useStore.js'
@@ -30,7 +31,7 @@ function BuiltinMedia({ ex, id, compact, minimizable }) {
   const gifSize = useStore(s => s.S.gifSize)
   const body = useStore(s => figureOf(s.S))
   const update = useStore(s => s.update)
-  if (!ex.gif) return null
+  if (!ex.gif || !EXERCISE_MEDIA) return null
   if (minimizable && gifSize === 'off') return null
   const mini = minimizable && gifSize === 'mini'
   const toggleSize = e => { e.stopPropagation(); update(s => { s.gifSize = mini ? 'full' : 'mini' }) }
@@ -84,7 +85,7 @@ export function Thumb(p) {
 }
 function BuiltinThumb({ ex }) {
   const body = useStore(s => figureOf(s.S))
-  const src = ex.img ? imgSrc(ex, body) : null
+  const src = EXERCISE_MEDIA && ex.img ? imgSrc(ex, body) : null
   const [broken, setBroken] = useState(null)
   if (!src || broken === src) return <div className="thumb thumb-x"><Icon name="dumbbell" /></div>
   return <img className="thumb" loading="lazy" decoding="async" draggable={false} src={src} alt="" onError={() => setBroken(src)} />

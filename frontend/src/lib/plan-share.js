@@ -21,6 +21,7 @@ import { t, exerciseNameFor, exerciseNameClass, getLang, RTL_LANGS } from './i18
 import { convertWeight } from './units.js'
 import { fmtSpeed, speedUnitOf } from './speed.js'
 import { MUSCLES, inMuscleOrder } from './muscles.js'
+import { APP_NAME, SITE_HOST } from './brand.js'
 
 const PLAN_FMT = 1
 const WEEK_DAYS = [1, 2, 3, 4, 5, 6, 0]   // every getDay() index; only the reader's own
@@ -466,13 +467,13 @@ export function planPrintHTML(S, owner, { routineId } = {}) {
 </style></head>
 <body><div class="doc">
   <header>
-    <div class="kicker">openGym</div>
+    <div class="kicker">${esc(APP_NAME)}</div>
     <h1>${esc(title)}</h1>
     ${sub ? `<div class="sub">${sub}</div>` : ''}
   </header>
   ${week}
   ${body}
-  <footer>${esc(t('Made with openGym'))} · opengym.ch</footer>
+  <footer>${esc(t('Made with openGym'))} · ${esc(SITE_HOST)}</footer>
 </div></body></html>`
 }
 
