@@ -45,3 +45,17 @@ git fetch upstream --tags && git merge vX.Y.Z
 sh deploy/sync-dockerfile.sh   # regenerate web/Dockerfile.huru
 # run tests, then deploy (section 3)
 ```
+
+## 7. Local machine (Docker Desktop) via Cloudflare Tunnel
+For running on a PC without a public IP. epipra.com DNS is on Cloudflare, so no router changes.
+1. Cloudflare dashboard -> Zero Trust -> Networks -> Tunnels -> Create a tunnel -> Cloudflared,
+   name `huru-gym`. Copy the token from the install command (the long string after `--token`).
+2. Same tunnel -> Public hostnames -> Add: subdomain `gym`, domain `epipra.com`,
+   service type `HTTP`, URL `caddy:80`. Cloudflare creates the DNS record itself.
+3. Paste the token into `deploy/.env` as `TUNNEL_TOKEN=...` (never into chat or git).
+4. From `deploy/`: `.\up-tunnel.ps1` (PowerShell) or
+   `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d --build`.
+5. Open https://gym.epipra.com and continue with section 4.
+The site is only up while this PC and Docker Desktop are running. Data lives in the Docker volume
+`huru-gym_huru_data`; back it up with:
+`docker run --rm -v huru-gym_huru_data:/data -v ${PWD}:/backup alpine tar czf /backup/huru-data.tgz -C /data .`

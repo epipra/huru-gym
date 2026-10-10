@@ -1,0 +1,30 @@
+# Tunnel mode, for a machine without a public IP (e.g. Docker Desktop on a PC):
+#   docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d --build
+# Cloudflare Tunnel publishes HURU_DOMAIN; no router ports, no certificates on this machine.
+# Needs TUNNEL_TOKEN in .env (Cloudflare Zero Trust -> Networks -> Tunnels), with the tunnel's
+# public hostname pointing at  http://caddy:80
+services:
+  # Named volume, not a Windows folder: the api fsyncs directories and sets 0600/0700 modes,
+  # which a Docker Desktop bind mount of a Windows path does not reliably honour.
+  api:
+    volumes: !override
+      - huru_data:/data
+
+  caddy:
+    ports: !reset []
+    volumes: !override
+      - ./Caddyfile.tunnel:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.0
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN:?set TUNNEL_TOKEN in .env}
+    depends_on: [caddy]
+    networks: [internal]
+
+volumes:
+  huru_data: {}
