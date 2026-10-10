@@ -59,3 +59,18 @@ For running on a PC without a public IP. epipra.com DNS is on Cloudflare, so no 
 The site is only up while this PC and Docker Desktop are running. Data lives in the Docker volume
 `huru-gym_huru_data`; back it up with:
 `docker run --rm -v huru-gym_huru_data:/data -v ${PWD}:/backup alpine tar czf /backup/huru-data.tgz -C /data .`
+
+## 8. Huru GYM Pro (Stripe)
+The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/huru/`, `frontend/src/lib/huru-pro.js`, `frontend/src/components/HuruPro.jsx`.
+1. Stripe dashboard (AdxFuel LLC), start in **Test mode**:
+   - Product Catalog -> Add product `Huru GYM Pro` with two recurring prices: USD 5.99 monthly and USD 39.99 yearly. Copy both price IDs (`price_...`).
+   - Developers -> API keys: copy the **Secret key** (`sk_test_...`).
+   - Developers -> Webhooks -> Add endpoint `https://gym.epipra.com/api/huru/stripe/webhook`, events
+     `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`,
+     `customer.subscription.deleted`. Copy its **Signing secret** (`whsec_...`).
+   - Settings -> Billing -> Customer portal: enable it (cancel, switch plan, update card).
+2. Put the four values into `deploy/.env` (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`), then `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d api`.
+3. Test with card `4242 4242 4242 4242`, any future date, any CVC, from a non-admin test profile.
+4. Live: repeat step 1 in Live mode and swap the four values. Prices shown in the app come from
+   `VITE_PRO_PRICE_MONTHLY` / `VITE_PRO_PRICE_YEARLY` at build time (defaults $5.99 / $39.99); keep them equal to Stripe.
+5. Comp a tester: `POST /api/huru/admin/grant {"uid": "...", "days": 30}` as an admin (list: `GET /api/huru/admin/billing`).
