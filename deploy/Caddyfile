@@ -1,0 +1,27 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$HURU_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	# API straight to the api container so it sees the real client address
+	# (the web nginx would overwrite X-Forwarded-For with Caddy's address).
+	handle /api/* {
+		reverse_proxy api:3000 {
+			transport http {
+				read_timeout 300s
+				write_timeout 300s
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy web:80
+	}
+}

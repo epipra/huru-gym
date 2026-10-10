@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Placeholder Huru GYM mark until the design phase delivers the real logo. Full-bleed
+       background so it also works as a maskable icon; the mark stays inside the 80% safe zone. -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <!-- "H" whose crossbar is a barbell -->
+  <rect x="150" y="136" width="56" height="240" rx="14" fill="#fff"/>
+  <rect x="306" y="136" width="56" height="240" rx="14" fill="#fff"/>
+  <rect x="120" y="236" width="272" height="40" rx="12" fill="#fff"/>
+  <rect x="104" y="212" width="22" height="88" rx="8" fill="#0F172A" opacity=".85"/>
+  <rect x="386" y="212" width="22" height="88" rx="8" fill="#0F172A" opacity=".85"/>
+</svg>
