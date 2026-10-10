@@ -1,3 +1,8 @@
+> **This is Huru GYM**, a hosted, rebranded fork of [openGym](https://github.com/DuarteSantos8/openGym) by AdxFuel LLC,
+> tracking upstream releases. Fork-specific docs: [docs/huru/](docs/huru/) (start with `10-DECISIONS-AND-SOLO-PLAN.md`),
+> deployment: [deploy/RUNBOOK.md](deploy/RUNBOOK.md), changes: [docs/huru/CHANGES.md](docs/huru/CHANGES.md).
+> The upstream README follows unchanged.
+
 <div align="center">
 
 <img src="assets/banner.png" alt="openGym" width="720">

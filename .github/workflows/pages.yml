@@ -31,6 +31,8 @@ concurrency:
 
 jobs:
   build:
+    # Huru GYM: upstream-only. Its images and demo carry the Gym visual media, which forks may not publish.
+    if: github.repository == 'DuarteSantos8/openGym'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

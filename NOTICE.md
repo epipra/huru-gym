@@ -159,3 +159,13 @@ by the Capawesome Team (Robin Genz), a Capacitor wrapper around Google's ML Kit,
 **Apache License 2.0**. openGym pins the `7.x` line to stay on Capacitor 7. The full license text is
 available at <https://www.apache.org/licenses/LICENSE-2.0> and in the package's own `LICENSE` file.
 The decoded string is what openGym keeps; the photo itself is never stored.
+
+## Huru GYM
+
+Huru GYM is a modified version of openGym, made by AdxFuel LLC (copyright (C) 2026 AdxFuel LLC for
+the modifications) and distributed under the same GNU AGPL v3.0 or later. The list of changes and
+their dates is in [docs/huru/CHANGES.md](docs/huru/CHANGES.md). Every notice above still applies.
+openGym and its author do not endorse Huru GYM.
+
+Huru GYM builds do not include the Gym visual exercise media described above unless AdxFuel LLC
+holds its own licence for it.
