@@ -24,7 +24,8 @@ const USER_ERROR = {
   shared: cfgStore.SHARED_ACCOUNT_REFUSAL,
   unprivileged: 'the Coach is switched off on this instance for safety reasons'
 };
-const HTTP_FOR = { off: 503, busy: 409, cap: 429, consent: 403, shared: 409, unprivileged: 503 };
+// pro: refused by a deployment's enqueue gate (jobs.setEnqueueGate); its words come from the gate.
+const HTTP_FOR = { off: 503, busy: 409, cap: 429, consent: 403, shared: 409, unprivileged: 503, pro: 402 };
 
 export function coachRoutes({ json, readBody, readSession, requireAdmin }) {
   /** Every user route starts the same way: signed in, feature on, feature reachable. The class

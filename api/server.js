@@ -16,6 +16,7 @@ import webpush from 'web-push';
 import * as coachConfig from './coach/config.js';
 import * as coachJobs from './coach/jobs.js';
 import { coachRoutes } from './coach/routes.js';
+import { huruRoutes } from './huru/routes.js';
 import { startCadence } from './coach/cadence.js';
 import { startWarmup } from './coach/warmup.js';
 import { dayReminderPush, nudgePush, restTimerPush, testPush } from './push-messages.js';
@@ -1904,6 +1905,12 @@ function dataWritable() {
   return ok;
 }
 
+// Huru GYM Pro: entitlement and Stripe billing (huru/routes.js). Inert unless HURU_BILLING is set.
+const huru = huruRoutes({
+  json, readBody, readSession, requireAdmin, isAdmin, audit, origin: ORIGIN,
+  findUser: uid => db.users.find(u => u.id === uid) || null
+});
+
 const routes = {
   // 503 rather than a flag in a 200: the container healthcheck is `wget --spider`, which reads
   // the status and nothing else, and an instance that cannot write its data directory is exactly
@@ -2575,6 +2582,9 @@ const routes = {
   // a cycle. Every one of them is inert while the feature is unconfigured.
   ...coachRoutes({ json, readBody, readSession, requireAdmin }),
 
+  /* ---------- Huru GYM Pro (billing, entitlement) ---------- */
+  ...huru.routes,
+
   /* ---------- photos & videos ---------- */
   // Absent, not refusing, when MEDIA_UPLOADS=0: a 404 is what a server from before the feature
   // answers, and the client already treats that as "this server does not store them".
@@ -2582,6 +2592,8 @@ const routes = {
 };
 
 /* ---------- Coach: boot recovery, notifications, scheduled reviews ---------- */
+// Huru GYM: Coach jobs need Pro when billing is on (huru/routes.js).
+coachJobs.setEnqueueGate(huru.coachGate);
 // A job that was running when the process died is not coming back; say so rather than leaving
 // a spinner that never resolves.
 coachJobs.recoverOnBoot();

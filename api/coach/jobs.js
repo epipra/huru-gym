@@ -196,6 +196,10 @@ export function clampMessage(text) {
  */
 export function enqueue(uid, opts) {
   if (!cfgStore.isEnabled() || !cfgStore.isConnected()) throw new CoachError('off', 'the Coach is not set up on this instance');
+  // A deployment's own rule for who may run jobs at all (a paid plan, say), set by server.js.
+  // Here rather than in the routes so scheduled reviews are held to it as well.
+  const refused = enqueueGate?.(uid);
+  if (refused) throw new CoachError(refused.code, refused.message);
   if (inflight.has(uid)) throw new CoachError('busy', 'the Coach is already thinking about your training');
 
   const S = readState(uid);
@@ -309,6 +313,8 @@ function finish(job, result) {
 // importing the web-push plumbing (and dragging it into every test that touches the queue).
 let onProposal = null;
 export function setProposalHook(fn) { onProposal = fn; }
+let enqueueGate = null;
+export function setEnqueueGate(fn) { enqueueGate = fn; }
 
 /* ---------- execution ---------- */
 
