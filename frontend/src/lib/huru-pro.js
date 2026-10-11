@@ -27,12 +27,15 @@ export const getProState = () => state
 export function subscribePro(fn) { subs.add(fn); return () => subs.delete(fn) }
 function set(next) { state = next; for (const fn of subs) fn() }
 
-export function loadPro({ force = false, request = api } = {}) {
+// `uid` keys the answer to the signed-in profile: after a switch of account the old answer is
+// not shown for the new one (components/HuruPro.jsx usePro compares it).
+export function loadPro({ force = false, request = api, uid = state.uid } = {}) {
   if (inflight) return inflight
-  if (state.loaded && !force) return Promise.resolve(state)
+  if (state.loaded && !force && state.uid === uid) return Promise.resolve(state)
+  const same = state.uid === uid
   inflight = request('/api/huru/me')
-    .then(me => set({ loaded: true, me, error: null }))
-    .catch(e => set({ loaded: true, me: e?.status === 404 ? NO_BILLING : state.me, error: e?.status === 404 ? null : e }))
+    .then(me => set({ loaded: true, me, error: null, uid }))
+    .catch(e => set({ loaded: true, me: e?.status === 404 ? NO_BILLING : (same ? state.me : null), error: e?.status === 404 ? null : e, uid }))
     .then(() => { inflight = null; return state })
   return inflight
 }
@@ -70,3 +73,17 @@ async function go(path, body, request) {
 
 export const startCheckout = (plan, request = api) => go('/api/huru/checkout', { plan: plan === 'yearly' ? 'yearly' : 'monthly' }, request)
 export const openBillingPortal = (request = api) => go('/api/huru/portal', {}, request)
+
+/** Consent screen: health-data processing and the Terms, for the server's current version. */
+export async function acceptConsent(version, request = api) {
+  await request('/api/huru/consent', { method: 'POST', body: JSON.stringify({ health: true, terms: true, version }) })
+  return loadPro({ force: true, request, uid: state.uid })
+}
+
+/** Needs the consent screen: a Huru server that says this profile has not agreed yet. */
+export const needsConsent = me => !!me?.consent && me.consent.accepted === false
+
+/** Deletes the signed-in account on the server. Throws with the server's words on refusal. */
+export async function deleteAccount({ confirmName, password }, request = api) {
+  return request('/api/huru/account/delete', { method: 'POST', body: JSON.stringify({ confirmName, password: password || undefined }) })
+}

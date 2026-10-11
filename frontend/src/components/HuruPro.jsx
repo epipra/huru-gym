@@ -7,6 +7,7 @@ import { MOBILE } from '../lib/mobile.js'
 import { APP_NAME } from '../lib/brand.js'
 import { getProState, subscribePro, loadPro, needsPro, proStatusLine, startCheckout, openBillingPortal, PRICE_LABELS } from '../lib/huru-pro.js'
 import { useUI } from '../store/useUI.js'
+import { useStore } from '../store/useStore.js'
 import Icon from './Icon.jsx'
 import { Section, Row, Button } from './ui.jsx'
 
@@ -14,8 +15,10 @@ const PRO_NAME = () => `${APP_NAME} Pro`
 
 export function usePro() {
   const s = useSyncExternalStore(subscribePro, getProState)
-  useEffect(() => { loadPro() }, [])
-  return s
+  const uid = useStore(st => st.user?.id || null)
+  const fresh = s.loaded && s.uid === uid
+  useEffect(() => { if (!fresh) loadPro({ force: true, uid }) }, [fresh, uid])
+  return fresh ? s : { ...s, loaded: false, me: null }
 }
 
 const FEATURES = [
@@ -56,7 +59,7 @@ export function ProScreen({ gated = false }) {
   useEffect(() => {
     if (back !== 'success') return
     let n = 0
-    const tick = () => loadPro({ force: true }).then(s => { if (!s.me?.pro && ++n < 6) timer = setTimeout(tick, 2000) })
+    const tick = () => loadPro({ force: true, uid: getProState().uid }).then(s => { if (!s.me?.pro && ++n < 6) timer = setTimeout(tick, 2000) })
     let timer = setTimeout(tick, 0)
     return () => clearTimeout(timer)
   }, [back])

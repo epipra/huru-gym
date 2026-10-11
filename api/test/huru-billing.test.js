@@ -55,8 +55,10 @@ const ENV = {
   HURU_BILLING: '1', STRIPE_SECRET_KEY: 'sk_test_1', STRIPE_WEBHOOK_SECRET: WHSEC,
   STRIPE_PRICE_MONTHLY: 'price_m', STRIPE_PRICE_YEARLY: 'price_y', HURU_TRIAL_DAYS: '7'
 };
+const purged = []
 const make = (env = ENV, fetchImpl = stripeFake()) =>
-  huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin: 'https://gym.example.com/', env, fetchImpl });
+  huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin: 'https://gym.example.com/', env, fetchImpl,
+    countAdmins: () => 1, purgeUser: u => purged.push(u.id), clearCoach: () => {} });
 
 async function call(h, key, user, body, headers) {
   const { res } = fakeRes();
@@ -219,6 +221,23 @@ test('admin grants Pro for a number of days, and only an admin can', async () =>
   await call(h, 'POST /api/huru/admin/grant', users[2], { uid: 'u-free', days: 0 });
   assert.equal(store.isPro('u-free'), false);
   assert.equal((await call(h, 'POST /api/huru/admin/grant', users[2], { uid: 'ghost', days: 3 })).code, 404);
+});
+
+test('deleting an account cancels its Stripe subscription first, and keeps everything if that fails', async () => {
+  store.update('u-free', { stripeSubscriptionId: 'sub_del', stripeCustomerId: 'cus_del', status: 'active', periodEnd: NOW_S() + 86400 });
+  const down = stripeFake({ '*': { status: 500, body: { error: { message: 'down' } } } });
+  const failed = await call(make(ENV, down), 'POST /api/huru/account/delete', users[0], { confirmName: 'Free' });
+  assert.equal(failed.code, 502);
+  assert.equal(purged.includes('u-free'), false, 'nothing deleted while the subscription still charges');
+  assert.equal(store.isPro('u-free'), true);
+
+  const up = stripeFake({ '/subscriptions/sub_del': { status: 200, body: { id: 'sub_del', status: 'canceled' } } });
+  const ok = await call(make(ENV, up), 'POST /api/huru/account/delete', users[0], { confirmName: 'Free' });
+  assert.equal(ok.code, 200);
+  assert.equal(up.calls[0].method, 'DELETE');
+  assert.ok(purged.includes('u-free'));
+  assert.equal(store.get('u-free'), null, 'the billing record is gone');
+  assert.equal(store.uidForCustomer('cus_del'), null);
 });
 
 /* ------------------------------------------------------------------ the real enqueue */

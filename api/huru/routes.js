@@ -6,12 +6,18 @@
  * counts as Pro and the Coach behaves exactly as upstream ships it.
  *
  * Env: HURU_BILLING=1, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_MONTHLY,
- *      STRIPE_PRICE_YEARLY, HURU_TRIAL_DAYS (first subscription only, default 0).
+ *      STRIPE_PRICE_YEARLY, HURU_TRIAL_DAYS (first subscription only, default 0),
+ *      HURU_CONSENT_VERSION (the Privacy Policy / Terms version accounts must accept),
+ *      HURU_PRIVACY_URL, HURU_TERMS_URL (shown beside the consent checkboxes).
+ *
+ * Also here: the consent record (health data + terms) and self-service account deletion.
  * Stripe webhook endpoint: <ORIGIN>/api/huru/stripe/webhook, events checkout.session.completed
  * and customer.subscription.created / .updated / .deleted.
  */
 import * as store from './billing-store.js';
+import * as consent from './consent-store.js';
 import { stripeRequest, verifySignature, StripeError } from './stripe.js';
+import { verifyPassword, passwordLength, MAX_LENGTH } from '../password.js';
 
 const on = v => /^(1|true|yes|on)$/i.test(v || '');
 const MAX_WEBHOOK_BODY = 1 << 20;
@@ -28,6 +34,20 @@ export function billingConfig(env = process.env) {
     trialDays: Math.max(0, Math.min(30, parseInt(env.HURU_TRIAL_DAYS || '0', 10) || 0))
   };
 }
+
+// Bump when the Privacy Policy or Terms change in a way people must agree to again.
+export const CONSENT_VERSION = '2026-10-11';
+
+export function consentConfig(env = process.env) {
+  return {
+    version: env.HURU_CONSENT_VERSION || CONSENT_VERSION,
+    privacyUrl: /^https:\/\//.test(env.HURU_PRIVACY_URL || '') ? env.HURU_PRIVACY_URL : null,
+    termsUrl: /^https:\/\//.test(env.HURU_TERMS_URL || '') ? env.HURU_TERMS_URL : null
+  };
+}
+
+// Password guesses against the deletion route: 5 per account per 15 minutes, in memory.
+const DELETE_TRIES = 5, DELETE_WINDOW_MS = 15 * 60000;
 
 /** The Stripe subscription object, reduced to what the entitlement needs. Newer API versions
  *  moved current_period_end onto the subscription items; both places are read. */
@@ -58,7 +78,8 @@ function readRaw(req) {
   });
 }
 
-export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin, audit, env = process.env, fetchImpl }) {
+export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin, audit, countAdmins, purgeUser, clearCoach, env = process.env, fetchImpl }) {
+  const deleteTries = new Map();   // uid -> { n, since }
   const base = String(origin || '').replace(/\/+$/, '');
   const stripe = (method, path, params) => stripeRequest(method, path, params, { key: billingConfig(env).key, fetchImpl });
 
@@ -98,7 +119,9 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
         canManage: !!e.stripeCustomerId,
         trialDays: e.trialUsed ? 0 : cfg.trialDays,
         plans: { monthly: !!cfg.prices.monthly, yearly: !!cfg.prices.yearly },
-        checkout: cfg.enabled && !!cfg.key
+        checkout: cfg.enabled && !!cfg.key,
+        consent: { ...consentConfig(env), accepted: consent.accepted(user.id, consentConfig(env).version) },
+        hasPassword: !!user.pw?.h
       });
     },
 
@@ -193,6 +216,66 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
         return json(res, 500, { error: 'retry later' });
       }
       json(res, 200, { received: true });
+    },
+
+    // The consent screen: explicit agreement to processing health and fitness data (GDPR
+    // Article 9) and to the Terms, for the version currently published.
+    'POST /api/huru/consent': async (req, res) => {
+      const user = readSession(req);
+      if (!user) return json(res, 401, { error: 'not signed in' });
+      const body = await readBody(req);
+      const { version } = consentConfig(env);
+      if (body.health !== true || body.terms !== true) return json(res, 400, { error: 'both agreements are needed', code: 'consent' });
+      if (body.version !== version) return json(res, 409, { error: 'the policy changed, reload and read it again', code: 'version' });
+      const rec = consent.record(user.id, version);
+      audit?.(req, 'huru.consent', { user, msg: version });
+      json(res, 200, { accepted: true, version: rec.version });
+    },
+
+    // Self-service account deletion: everything the account holds, on this server and at Stripe.
+    // Asks for the profile name typed out and, when the account has one, its password.
+    'POST /api/huru/account/delete': async (req, res) => {
+      const user = readSession(req);
+      if (!user) return json(res, 401, { error: 'not signed in' });
+      const body = await readBody(req);
+      if (String(body.confirmName || '').trim() !== user.name) return json(res, 400, { error: 'type your profile name exactly to confirm', code: 'confirm' });
+
+      const now = Date.now();
+      const t = deleteTries.get(user.id);
+      const tries = t && now - t.since < DELETE_WINDOW_MS ? t : { n: 0, since: now };
+      if (tries.n >= DELETE_TRIES) return json(res, 429, { error: 'too many attempts, try again in 15 minutes', code: 'throttled' });
+      if (user.pw?.h) {
+        const pw = String(body.password || '');
+        if (!pw) return json(res, 400, { error: 'enter your password to confirm', code: 'password-required' });
+        const ok = passwordLength(pw) <= MAX_LENGTH && await verifyPassword(pw, user.pw.h);
+        if (!ok) {
+          deleteTries.set(user.id, { n: tries.n + 1, since: tries.since });
+          return json(res, 403, { error: 'that password is not right', code: 'password' });
+        }
+      }
+      if (isAdmin(user) && countAdmins() <= 1) return json(res, 409, { error: 'make someone else an admin before deleting the last admin account', code: 'last-admin' });
+
+      // Stop charging first: if Stripe cannot be reached, nothing is deleted and the user retries.
+      const e = store.get(user.id);
+      if (e?.stripeSubscriptionId && e.status && e.status !== 'canceled' && billingConfig(env).key) {
+        try {
+          await stripe('DELETE', `/subscriptions/${encodeURIComponent(e.stripeSubscriptionId)}`);
+        } catch (err) {
+          if (!(err instanceof StripeError)) throw err;
+          if (err.status !== 404) {
+            console.error('huru delete: stripe cancel failed:', err.message);
+            return json(res, 502, { error: 'your subscription could not be cancelled, nothing was deleted, try again in a moment', code: 'stripe' });
+          }
+        }
+      }
+      try { clearCoach?.(user.id); } catch (err) { console.error('huru delete: coach data', err.message); }
+      store.remove(user.id);
+      consent.remove(user.id);
+      deleteTries.delete(user.id);
+      purgeUser(user);
+      // Logged with the name: the id means nothing once the account is gone.
+      audit?.(req, 'huru.account.delete', { user, msg: user.name });
+      json(res, 200, { ok: true });
     },
 
     // Comps for beta testers and friends: Pro for N days without a subscription. days 0 revokes.

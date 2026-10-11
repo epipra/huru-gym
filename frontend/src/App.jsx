@@ -1,3 +1,4 @@
+import { ConsentGate, DeleteAccountScreen } from './components/HuruAccount.jsx'
 import { ProGate, ProScreen } from './components/HuruPro.jsx'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
@@ -204,7 +205,7 @@ function Shell() {
       <div id="app" className="vfade" key={loc.pathname}>
         <ErrorBoundary>
           {!authed ? <Login /> : needsMobileOnboarding ? <MobileOnboarding /> : (
-            <Routes>
+            <ConsentGate><Routes>
               <Route path="/home" element={<Home />} />
               {/* Gym check-in — switched off in Settings, the route falls through to the
                   catch-all redirect below. */}
@@ -227,11 +228,12 @@ function Shell() {
               <Route path="/coach" element={<ProGate><CoachChat /></ProGate>} />
               <Route path="/coach/intake" element={<ProGate><CoachIntake /></ProGate>} />
               <Route path="/pro" element={<ProScreen />} />
+              <Route path="/account/delete" element={<DeleteAccountScreen />} />
               <Route path="/coach/proposal" element={<Navigate to="/coach" replace />} />
               <Route path="/coach/setup" element={<CoachSetup />} />
               <Route path="/admin" element={user?.admin ? <Admin /> : <Navigate to="/home" replace />} />
               <Route path="*" element={<Navigate to="/home" replace />} />
-            </Routes>
+            </Routes></ConsentGate>
           )}
         </ErrorBoundary>
       </div>

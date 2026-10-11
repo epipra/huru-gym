@@ -1823,6 +1823,20 @@ export const useStore = create((set, get) => {
       return left.owed ? owedResult(left, { stashed: true }) : { owed: false }
     },
 
+    // Huru GYM: the account was deleted on the server (components/HuruAccount.jsx). Unlike a
+    // sign-out nothing of it is kept on this device: no owed changes, no stash for it, no running
+    // workout, because there is no account left to bring them back to.
+    async accountDeleted() {
+      const uid = get().user?.id
+      await stopTimers()
+      if (uid) {
+        const all = await readStashes()
+        for (const k of Object.keys(all)) if (k.endsWith('|' + uid)) delete all[k]
+        await writeStashes(all)
+      }
+      await clearLocalSession()
+    },
+
     // Demo build only: drop the seeded example profile back in (Settings → "Reset demo data").
     // Dynamic import so the generator never ships in a self-hosted bundle.
     async resetDemo() {

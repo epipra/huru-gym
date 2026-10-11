@@ -59,6 +59,16 @@ export function update(uid, patch, now = Date.now()) {
   return next;
 }
 
+export function remove(uid) {
+  const db = load();
+  const e = db.users[uid];
+  if (!e) return null;
+  delete db.users[uid];
+  if (e.stripeCustomerId && db.customers[e.stripeCustomerId] === uid) delete db.customers[e.stripeCustomerId];
+  save();
+  return e;
+}
+
 export function uidForCustomer(customerId) {
   return (customerId && load().customers[customerId]) || null;
 }

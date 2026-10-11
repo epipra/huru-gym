@@ -1905,10 +1905,28 @@ function dataWritable() {
   return ok;
 }
 
+// Removes an account and everything attached to it. Shared by the admin's delete and the
+// self-service deletion in huru/routes.js, so a new kind of per-user data is added in one place.
+function purgeUser(u) {
+  db.users = db.users.filter(x => x.id !== u.id);
+  db.creds = (db.creds || []).filter(c => c.userId !== u.id);
+  db.subs = (db.subs || []).filter(x => x.userId !== u.id);
+  dropDeviceLinks(db, u.id);
+  presence.delete(u.id);
+  // The training history and any Coach credential of theirs, both outside db.json.
+  try { fs.unlinkSync(stateFile(u.id)); } catch { /* already gone */ }
+  try { coachConfig.clearProfileAuth(u.id); } catch { /* nothing stored */ }
+  // Their photos and videos — the one place a profile's folder under uploads/ is removed.
+  try { MEDIA.removeUser(u.id); } catch (e) { console.error('media: could not remove uploads of', u.id, e.message); }
+  saveDb();
+}
+
 // Huru GYM Pro: entitlement and Stripe billing (huru/routes.js). Inert unless HURU_BILLING is set.
 const huru = huruRoutes({
   json, readBody, readSession, requireAdmin, isAdmin, audit, origin: ORIGIN,
-  findUser: uid => db.users.find(u => u.id === uid) || null
+  findUser: uid => db.users.find(u => u.id === uid) || null,
+  countAdmins: () => db.users.filter(isAdmin).length,
+  purgeUser, clearCoach: uid => coachJobs.clearUser(uid)
 });
 
 const routes = {
@@ -2487,17 +2505,7 @@ const routes = {
     if (u.id === admin.id) return json(res, 400, { error: 'you cannot delete your own account' });
     if (isAdmin(u) && db.users.filter(isAdmin).length <= 1) return json(res, 400, { error: 'cannot delete the last admin' });
     const name = u.name;
-    db.users = db.users.filter(x => x.id !== u.id);
-    db.creds = (db.creds || []).filter(c => c.userId !== u.id);
-    db.subs = (db.subs || []).filter(x => x.userId !== u.id);
-    dropDeviceLinks(db, u.id);
-    presence.delete(u.id);
-    // The training history and any Coach credential of theirs, both outside db.json.
-    try { fs.unlinkSync(stateFile(u.id)); } catch { /* already gone */ }
-    try { coachConfig.clearProfileAuth(u.id); } catch { /* nothing stored */ }
-    // Their photos and videos — the one place a profile's folder under uploads/ is removed.
-    try { MEDIA.removeUser(u.id); } catch (e) { console.error('media: could not remove uploads of', u.id, e.message); }
-    saveDb();
+    purgeUser(u);
     // Logged with the name, because the id is about to mean nothing to anyone reading this back.
     audit(req, 'admin.user.delete', { user: admin, msg: name });
     json(res, 200, { ok: true, id: u.id });
