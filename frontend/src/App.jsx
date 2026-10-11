@@ -1,4 +1,4 @@
-import { ConsentGate, DeleteAccountScreen } from './components/HuruAccount.jsx'
+import { ConsentGate, DeleteAccountScreen, useConsentPending } from './components/HuruAccount.jsx'
 import { ProGate, ProScreen } from './components/HuruPro.jsx'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom'
@@ -187,7 +187,9 @@ function Shell() {
   }, [inWorkout])
   // The chat owns the bottom of the screen as well: its composer sits where the tabs would be.
   // The first-launch card has no tabs either: they changed the route behind it.
-  const noTabs = inWorkout || loc.pathname === '/coach' || needsMobileOnboarding
+  // Huru GYM: the consent screen has no tabs either; Start would open a workout around it.
+  const consentPending = useConsentPending()
+  const noTabs = inWorkout || loc.pathname === '/coach' || needsMobileOnboarding || consentPending
 
   const authed = user || isGuest
   if (!ready && !authed) return (

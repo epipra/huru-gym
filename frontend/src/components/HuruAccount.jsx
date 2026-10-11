@@ -24,6 +24,14 @@ export function ConsentGate({ children }) {
   return children
 }
 
+/** True while the consent screen is showing: the app hides its tab bar, whose Start button
+ *  would otherwise open a workout around the gate. */
+export function useConsentPending() {
+  const loc = useLocation()
+  const { loaded, me } = usePro()
+  return loaded && needsConsent(me) && loc.pathname !== DELETE_PATH
+}
+
 const link = (href, label) => href
   ? <a href={href} target="_blank" rel="noopener">{label}</a>
   : label
