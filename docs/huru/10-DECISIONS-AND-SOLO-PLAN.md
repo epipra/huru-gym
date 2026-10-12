@@ -10,8 +10,8 @@
 | D3 | **No Gym visual media in Huru deployments** until we hold our own license. Text instructions + muscle map only. Quote request sent in week 1 (see 09) | Upstream NOTICE forbids third-party reuse; legal risk outweighs UX loss for beta | License signed -> enable media |
 | D4 | **Beta hosting: one VPS + Docker Compose + Caddy (auto TLS)**, nightly encrypted backups to object storage. Est. USD 6-15/month. AWS/ECS/RDS (TRD) deferred. **Interim since 2026-10-10:** the owner's PC (Docker Desktop) behind Cloudflare Tunnel `huru-gym` (`deploy/docker-compose.tunnel.yml`), USD 0; move to the VPS before Stripe live mode | Revenue-focused; upstream already ships docker-compose | Before taking real payments; ~1,000 weekly actives |
 | D5 | Storage: keep upstream JSON-per-profile storage for beta; adopt upstream's database storage when it lands. Postgres schema in 05 becomes the target, not week-1 work | Avoids diverging from upstream on the core data path | Upstream DB release, or scale limits |
-| D6 | Domains: beta **gym.epipra.com** (app + API same origin). Passkey `RP_ID=gym.epipra.com`. Production later on hurugym.com; every domain is an env var | Owner choice; same origin avoids CORS/cookie issues | Production launch |
-| D7 | Moving to hurugym.com later: needs a small patch (several allowed `ORIGIN`s + `/.well-known/webauthn` Related Origin Requests on gym.epipra.com) so beta passkeys keep working; `PASSWORD_LOGIN=1` in beta as fallback; 301-redirect old host. **Cheaper alternative: register hurugym.com now (~USD 11/yr) and launch beta there** | Passkeys are bound to the RP ID (audit 11, risk 2) | Production cut-over |
+| D6 | Domains: beta **gym.adxfuel.com** (app + API same origin; moved from gym.epipra.com on 2026-10-12, old host 301-redirects). Passkey `RP_ID=gym.adxfuel.com`. Support e-mail support@adxfuel.com. Production later on hurugym.com; every domain is an env var | Owner choice; same origin avoids CORS/cookie issues | Production launch |
+| D7 | Moving to hurugym.com later: needs a small patch (several allowed `ORIGIN`s + `/.well-known/webauthn` Related Origin Requests on gym.adxfuel.com) so beta passkeys keep working; `PASSWORD_LOGIN=1` in beta as fallback; 301-redirect old host. **Cheaper alternative: register hurugym.com now (~USD 11/yr) and launch beta there** | Passkeys are bound to the RP ID (audit 11, risk 2) | Production cut-over |
 | D8 | Revenue order: **web first (Stripe, no store fee) -> Android (Play Billing via RevenueCat) -> iOS** | Web subscriptions keep ~97% of revenue; Android costs USD 25 once; iOS USD 99/yr | Android conversion data |
 | D9 | AI Coach (Pro) on the **Anthropic Messages API** using upstream's existing `anthropic` adapter (instance mode, our API key) - no new adapter needed; default model Claude Haiku 5.5 for reviews/revisions, Claude Sonnet 5.5 for full plan design; upstream's per-profile daily cap (about 5) plus the Pro gate on every job, scheduled ones included | Main paid differentiator; CLI sign-ins are not allowed for multi-user paid service | Cost per Pro user > 30% of price |
 | D10 | Pricing (initial, adjustable): **Pro USD 5.99/month or 39.99/year, 7-day trial**; free core forever, no ads | Market band of Hevy/Strong Pro; low enough for impulse buy | After 100 paying users |
@@ -22,21 +22,21 @@
 ## 2. Solo plan (replaces 06 timeline)
 | Phase | Weeks | Scope | Revenue gate |
 |-------|-------|-------|--------------|
-| A Fork & beta | 1-2 | Fork to epipra/huru-gym, code audit, brand layer (name, icons, colors, app ids, RP name), media off, NOTICE/CHANGELOG, VPS + Caddy + backups, deploy gym.epipra.com, invite-only signups | Beta live with 10-20 real lifters |
+| A Fork & beta | 1-2 | Fork to epipra/huru-gym, code audit, brand layer (name, icons, colors, app ids, RP name), media off, NOTICE/CHANGELOG, VPS + Caddy + backups, deploy gym.adxfuel.com, invite-only signups | Beta live with 10-20 real lifters |
 | B Pro on web | 3-5 | Coach on Claude API (existing adapter) + Pro gating + quotas, e-mail recovery, Stripe Checkout + Customer Portal + webhooks, entitlements, paywall, Privacy Policy, Terms, account deletion page | First paying user |
-| C Android | 6-8 | Rebranded Capacitor Android app synced to gym.epipra.com, Play Billing via RevenueCat, Play listing + data safety form, closed test (Play requires 12 testers / 14 days for new personal accounts; org account avoids this) | Play approval |
+| C Android | 6-8 | Rebranded Capacitor Android app synced to gym.adxfuel.com, Play Billing via RevenueCat, Play listing + data safety form, closed test (Play requires 12 testers / 14 days for new personal accounts; org account avoids this) | Play approval |
 | D Production | 9-12 | hurugym.com cut-over, marketing site (Astro on Cloudflare Pages, free), iOS app, media (if licensed) | MRR covers infra + Apple fee |
 | Later | - | Postgres/managed DB, AWS, admin extensions, Health sync on iOS, imports beyond upstream | Scale |
 
 **Status on 2026-10-12.** Phase A is done except the VPS and backups (interim hosting per D4) and the native app ids and icons (Phase C). Phase B is built: Pro gating, Stripe checkout, portal and webhook, paywall, consent screen, account deletion, Privacy Policy and Terms drafts. Phase B still needs Stripe keys, published legal pages with in-app links, e-mail recovery, and the Coach's API key in the admin dashboard. Upstream released v1.4.1 on 2026-10-10; merge it next.
 
 ## 3. Monthly cost at beta (estimate)
-Today USD 0 (owner's PC, interim). Planned: VPS USD 5-10 · object-storage backups < USD 1 · domain (epipra.com already owned) USD 0 · Sentry free · Stripe 2.9% + 30c per charge only when paid · Claude API pay-per-use, capped by quota. Total fixed ~USD 6-15/month.
+Today USD 0 (owner's PC, interim). Planned: VPS USD 5-10 · object-storage backups < USD 1 · domain (adxfuel.com already owned) USD 0 · Sentry free · Stripe 2.9% + 30c per charge only when paid · Claude API pay-per-use, capped by quota. Total fixed ~USD 6-15/month.
 
 ## 4. Owner actions (only what Claude cannot do)
 1. Done: `gh auth login`; repo created.
 2. Before paid launch: buy a VPS (Hetzner Cloud CPX21 or CX32, Ubuntu 24.04, EU region) with the SSH key Claude provided; share the IP. Until then the PC + tunnel serves the beta.
-3. Done: gym.epipra.com routed through the Cloudflare tunnel.
+3. Done: gym.adxfuel.com routed through Cloudflare tunnel `huru-gym` in the AdxFuel LLC Cloudflare account (moved from gym.epipra.com on 2026-10-12).
 4. Send the two emails in `09-OUTREACH-DRAFTS.md`.
 5. Phase B: Stripe account for AdxFuel LLC, Anthropic API key (put into the server's `.env`, never in chat).
 6. Phase C: Google Play developer account as an organization (needs D-U-N-S number for AdxFuel LLC - request it now, it is free and takes up to ~30 days).

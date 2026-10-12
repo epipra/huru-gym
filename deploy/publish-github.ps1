@@ -15,7 +15,7 @@ if ($LASTEXITCODE -ne 0) { git remote add origin https://github.com/epipra/huru-
 git push -u origin huru/main:main
 if ($LASTEXITCODE -ne 0) { throw 'push failed (upstream main may have moved: fetch upstream, merge, retry)' }
 
-gh repo edit epipra/huru-gym --description 'Huru GYM - workout and body-weight tracker. A hosted, rebranded fork of openGym (AGPL-3.0) by AdxFuel LLC.' --homepage 'https://gym.epipra.com' --enable-issues --enable-wiki=false
+gh repo edit epipra/huru-gym --description 'Huru GYM - workout and body-weight tracker. A hosted, rebranded fork of openGym (AGPL-3.0) by AdxFuel LLC.' --homepage 'https://gym.adxfuel.com' --enable-issues --enable-wiki=false
 # Forks start with Actions off. Turn them on so test.yml runs the suites on Linux for every push;
 # the publish/pages/mirror workflows are guarded to run only in the upstream repository.
 gh api -X PUT repos/epipra/huru-gym/actions/permissions -F enabled=true -f allowed_actions=all

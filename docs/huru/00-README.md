@@ -19,7 +19,7 @@ Current status, findings and the task tracker live in the "Huru GYM - Status & A
 ## Assumptions
 - Base is github.com/DuarteSantos8/openGym **v1.4.0** (`b1cff63`), tracked as `upstream`; our repo is github.com/epipra/huru-gym. (alexpcosta/opengym is 1,673 commits behind and is not used.)
 - Hosted product with free core and a paid Pro tier (AI Coach and extras).
-- Publisher: AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US. Beta domain gym.epipra.com; production hurugym.com later. Trademark still to be checked.
+- Publisher: AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US. Beta domain gym.adxfuel.com; production hurugym.com later. Trademark still to be checked.
 - Exercise media must be licensed or replaced before launch.
 - Stack (beta): upstream as-is - React + Vite, Capacitor, Node.js API with JSON storage, Docker Compose, Claude API - plus Huru modules for brand, Pro billing (Stripe), consent and account deletion. Runs on the owner's PC behind Cloudflare Tunnel until a VPS is rented before paid launch. Fastify/Postgres/AWS from 02 are the scale-up target (see 10).
 

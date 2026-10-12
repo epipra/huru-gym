@@ -10,7 +10,7 @@ Inputs were "take the openGym repo to production as Huru GYM on web, iOS and And
 - **Publisher:** one legal entity (to be confirmed) owns store accounts, privacy policy and terms.
 - **Team:** one person (owner) using AI coding tools. Publisher: AdxFuel LLC (Wyoming, US).
 - **Markets:** global, English first; the 19 existing UI languages are kept (Arabic needs RTL QA). EU privacy rules (GDPR) are applied everywhere.
-- **Domain:** beta at gym.epipra.com (app + API, same origin); production hurugym.com (unregistered as of 2026-10-10) later.
+- **Domain:** beta at gym.adxfuel.com (app + API, same origin); production hurugym.com (unregistered as of 2026-10-10) later.
 - **Exercise media:** the animations belong to Gym visual; Huru deployments ship without them until our own license is signed.
 
 ## 1. Overview

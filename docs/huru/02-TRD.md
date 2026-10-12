@@ -78,7 +78,7 @@ huru-gym/
 | PostHog (EU, opt-in only) | Product analytics | PRD section 5 |
 
 ## 5. Authentication & security
-- **Passkeys first** (WebAuthn, discoverable credentials). `RP_ID` is `gym.epipra.com` in beta and the registrable domain (hurugym.com) in production; old passkeys keep working via `/.well-known/webauthn` Related Origin Requests so web and subdomains share credentials; native apps use associated domains (iOS) and Digital Asset Links (Android). Existing self-hosted passkeys do not migrate (different RP ID); users re-register.
+- **Passkeys first** (WebAuthn, discoverable credentials). `RP_ID` is `gym.adxfuel.com` in beta and the registrable domain (hurugym.com) in production; old passkeys keep working via `/.well-known/webauthn` Related Origin Requests so web and subdomains share credentials; native apps use associated domains (iOS) and Digital Asset Links (Android). Existing self-hosted passkeys do not migrate (different RP ID); users re-register.
 - **Recovery and alternatives:** Apple and Google sign-in, email one-time code (hashed, 10-minute expiry, attempt-limited). Account linking by verified email only.
 - **Sessions:** web uses HttpOnly Secure SameSite cookies with CSRF protection; native uses short-lived access tokens with rotating refresh tokens in Keychain/Keystore; users can view and revoke sessions.
 - **Hardening:** rate limiting on auth and sync, input validation with Zod on every route, row-level ownership checks on every query, dependency scanning (Dependabot, CodeQL), SBOM per release, secrets only in Secrets Manager.

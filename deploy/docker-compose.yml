@@ -25,7 +25,7 @@ services:
       dockerfile: web/Dockerfile.huru
       args:
         APP_BUILD: ${APP_BUILD:-}
-        VITE_SITE_HOST: ${HURU_DOMAIN:-gym.epipra.com}
+        VITE_SITE_HOST: ${HURU_DOMAIN:-gym.adxfuel.com}
     image: huru-gym-web:local
     restart: unless-stopped
     depends_on: [api]

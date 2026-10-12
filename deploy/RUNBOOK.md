@@ -1,6 +1,6 @@
 # Huru GYM - Server runbook
 
-Beta host: `gym.epipra.com` on one Ubuntu 24.04 VPS, Docker Compose, Caddy for HTTPS.
+Beta host: `gym.adxfuel.com` on one Ubuntu 24.04 VPS, Docker Compose, Caddy for HTTPS.
 
 ## 1. One-time server setup (as root)
 ```sh
@@ -15,7 +15,7 @@ mkdir -p /srv/huru-gym/data && chmod 700 /srv/huru-gym/data   # api container ru
 ```
 
 ## 2. DNS
-At the DNS host for `epipra.com`: `A gym -> <VPS IPv4>` (and `AAAA gym -> <VPS IPv6>` if present). If Cloudflare: **DNS only (grey cloud)** so Caddy can get its certificate.
+At the DNS host for `adxfuel.com`: `A gym -> <VPS IPv4>` (and `AAAA gym -> <VPS IPv6>` if present). If Cloudflare: **DNS only (grey cloud)** so Caddy can get its certificate.
 
 ## 3. Deploy / update (as deploy)
 ```sh
@@ -28,7 +28,7 @@ docker compose ps && docker compose logs --tail=50 api
 
 ## 4. First account (bootstrap)
 1. `.env`: `INVITE_ONLY=0`, `FIRST_USER_ADMIN=1`. Deploy.
-2. Open https://gym.epipra.com and create the owner account (becomes admin).
+2. Open https://gym.adxfuel.com and create the owner account (becomes admin).
 3. `.env`: `INVITE_ONLY=1`. `docker compose up -d`. Invite beta users from the admin dashboard.
 
 ## 5. Backups
@@ -47,15 +47,17 @@ sh deploy/sync-dockerfile.sh   # regenerate web/Dockerfile.huru
 ```
 
 ## 7. Local machine (Docker Desktop) via Cloudflare Tunnel
-For running on a PC without a public IP. epipra.com DNS is on Cloudflare, so no router changes.
-1. Cloudflare dashboard -> Zero Trust -> Networks -> Tunnels -> Create a tunnel -> Cloudflared,
+For running on a PC without a public IP. adxfuel.com DNS is on Cloudflare, so no router changes.
+1. Cloudflare dashboard (account **AdxFuel LLC**, the account that holds the adxfuel.com zone; a tunnel cannot serve a domain in another account) -> Zero Trust -> Networks -> Tunnels -> Create a tunnel -> Cloudflared,
    name `huru-gym`. Copy the token from the install command (the long string after `--token`).
-2. Same tunnel -> Public hostnames -> Add: subdomain `gym`, domain `epipra.com`,
+2. Same tunnel -> Public hostnames -> Add: subdomain `gym`, domain `adxfuel.com`,
    service type `HTTP`, URL `caddy:80`. Cloudflare creates the DNS record itself.
 3. Paste the token into `deploy/.env` as `TUNNEL_TOKEN=...` (never into chat or git).
 4. From `deploy/`: `.\up-tunnel.ps1` (PowerShell) or
    `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d --build`.
-5. Open https://gym.epipra.com and continue with section 4.
+5. Open https://gym.adxfuel.com and continue with section 4.
+**Moving to another domain** (done once, gym.epipra.com -> gym.adxfuel.com on 2026-10-12): every user sets a password first (Settings), because passkeys are bound to `RP_ID` and stop working on the new host; change `HURU_DOMAIN`, `RP_ID`, `ORIGIN`, `HURU_PRIVACY_URL`, `HURU_TERMS_URL` in `.env`; rebuild `web` and restart `api`; update the Stripe webhook URL and public details; add a Cloudflare redirect rule (301, keep path and query) on the old host. Users then sign in with their password and add a new passkey.
+
 The site is only up while this PC and Docker Desktop are running. Data lives in the Docker volume
 `huru-gym_huru_data`; back it up with:
 `docker run --rm -v huru-gym_huru_data:/data -v ${PWD}:/backup alpine tar czf /backup/huru-data.tgz -C /data .`
@@ -65,7 +67,7 @@ The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/
 1. Stripe dashboard (AdxFuel LLC), start in **Test mode**:
    - Product Catalog -> Add product `Huru GYM Pro` with two recurring prices: USD 5.99 monthly and USD 39.99 yearly. Copy both price IDs (`price_...`).
    - Developers -> API keys: copy the **Secret key** (`sk_test_...`).
-   - Developers -> Webhooks -> Add endpoint `https://gym.epipra.com/api/huru/stripe/webhook`, events
+   - Developers -> Webhooks -> Add endpoint `https://gym.adxfuel.com/api/huru/stripe/webhook`, events
      `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`,
      `customer.subscription.deleted`. Copy its **Signing secret** (`whsec_...`).
    - Settings -> Billing -> Customer portal: enable it (cancel, switch plan, update card).

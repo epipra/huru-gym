@@ -17,7 +17,7 @@ cd "$(dirname "$0")/.."
           print "# Huru GYM brand (frontend/src/lib/brand.js reads these at build time)."
           print "ARG VITE_APP_NAME=\"Huru GYM\""
           print "ARG VITE_SOURCE_URL=https://github.com/epipra/huru-gym"
-          print "ARG VITE_SITE_HOST=gym.epipra.com"
+          print "ARG VITE_SITE_HOST=gym.adxfuel.com"
           print "ARG VITE_EXERCISE_MEDIA=0"
           print "ENV VITE_APP_NAME=$VITE_APP_NAME VITE_SOURCE_URL=$VITE_SOURCE_URL VITE_SITE_HOST=$VITE_SITE_HOST VITE_EXERCISE_MEDIA=$VITE_EXERCISE_MEDIA"
           print

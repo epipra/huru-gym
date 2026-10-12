@@ -25,7 +25,7 @@ There is no central app-name setting; `RP_NAME` is the only switch. About 6,400 
 
 ## 3. Risks for a hosted service
 1. **Single process, single writer.** In-memory challenges, rate limits, rest timers and the coach queue; `db.json` is rewritten synchronously on logins and pulls. Fine for beta on one VPS; it will not scale horizontally. Plan a storage adapter at around 1k active users, or adopt upstream's database release.
-2. **Passkeys bound to `RP_ID`.** Moving from gym.epipra.com to hurugym.com later needs multi-origin support (WebAuthn Related Origin Requests + allowing several `ORIGIN`s in the CSRF check and verifier) or users re-register. Mitigation: enable `PASSWORD_LOGIN` in beta as a fallback.
+2. **Passkeys bound to `RP_ID`.** Moving from gym.adxfuel.com to hurugym.com later needs multi-origin support (WebAuthn Related Origin Requests + allowing several `ORIGIN`s in the CSRF check and verifier) or users re-register. Mitigation: enable `PASSWORD_LOGIN` in beta as a fallback.
 3. **No e-mail recovery.** Lost passkey means an admin-issued reset code. Acceptable for an invite-only beta; a Phase B item before open sign-up.
 4. **Admins can read all user data; nothing is encrypted at rest** (`SECURITY.md`). Disclose this in the Privacy Policy; use full-disk encryption on the VPS and encrypted backups.
 5. **AGPL source link** in Settings must point to github.com/epipra/huru-gym.
