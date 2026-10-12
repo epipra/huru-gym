@@ -77,3 +77,18 @@ The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/
 4. Live: repeat step 1 in Live mode and swap the four values. Prices shown in the app come from
    `VITE_PRO_PRICE_MONTHLY` / `VITE_PRO_PRICE_YEARLY` at build time (defaults $5.99 / $39.99); keep them equal to Stripe.
 5. Comp a tester: `POST /api/huru/admin/grant {"uid": "...", "days": 30}` as an admin (list: `GET /api/huru/admin/billing`).
+
+## 9. Password-reset e-mail
+"Forgot your password?" on the password sign-in sheet e-mails a one-time code (60 minutes, single
+use) to the profile's sign-in e-mail; the user enters it on the same sheet with a new password.
+Code: `api/huru/mail.js` (SMTP over TLS, no library), `POST /api/huru/password/forgot` in
+`api/huru/routes.js`, `frontend/src/components/HuruForgot.jsx`. Only profiles with a password and
+a sign-in e-mail (Settings -> Account) can use it; anyone else still gets an admin reset code.
+1. Google Admin / Google Account of support@adxfuel.com: turn on 2-Step Verification, then
+   Security -> App passwords -> create one named `huru-gym`.
+2. Paste it into `deploy/.env` as `SMTP_PASS=` (`SMTP_USER` and `MAIL_FROM` are already there).
+3. `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d api`.
+4. Test: sign out, Sign in with password -> Forgot your password? -> your sign-in e-mail.
+   A failed send is logged as `huru mail: reset code not sent: ...` (`docker logs huru-gym-api-1`).
+Limits: 5 requests per network address and 3 per e-mail address an hour; Google allows about
+2,000 messages a day per mailbox.

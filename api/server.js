@@ -1926,7 +1926,8 @@ const huru = huruRoutes({
   json, readBody, readSession, requireAdmin, isAdmin, audit, origin: ORIGIN,
   findUser: uid => db.users.find(u => u.id === uid) || null,
   countAdmins: () => db.users.filter(isAdmin).length,
-  purgeUser, clearCoach: uid => coachJobs.clearUser(uid)
+  purgeUser, clearCoach: uid => coachJobs.clearUser(uid),
+  findByEmail: emailHolder, saveDb, limitAddress
 });
 
 const routes = {

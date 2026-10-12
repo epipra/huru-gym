@@ -54,6 +54,7 @@
 <tr><td>AI Coach plans and reviews (Pro)</td><td>Training, body, AI Coach answers, units and language</td><td>Our contract with you, plus the separate consent you give in the Coach</td></tr>
 <tr><td>“Compare with others” in the Coach</td><td>Anonymous medians of training figures</td><td>Your opt-in consent; shown only when at least three people share</td></tr>
 <tr><td>Subscriptions, receipts and tax records</td><td>Subscription, account</td><td>Our contract with you; our legal duty to keep financial records</td></tr>
+<tr><td>E-mail you a password-reset code when you ask for one</td><td>Account (name, sign-in e-mail)</td><td>Our contract with you</td></tr>
 <tr><td>Answer your questions</td><td>Support, account</td><td>Our contract with you</td></tr>
 </tbody></table></div>
 <p>The AI Coach only suggests changes. Nothing changes in your plan until you accept it, and every accepted change can be undone, so no decision with legal or similarly significant effect is made about you automatically.</p>
@@ -61,7 +62,7 @@
 <h2>4. Health and fitness data, and the AI Coach</h2>
 <p>Your body weight, measurements and training history can reveal things about your health, so we treat them as sensitive data and process them only with your explicit consent.</p>
 <p><strong>Your consent.</strong> You give it on a consent screen, with an unticked checkbox, before you first use the app. You can withdraw it at any time by deleting that data or your account; this does not affect processing that already happened. Huru GYM is a fitness tool, not a medical service.</p>
-<p><strong>What the AI Coach sends.</strong> The Coach is a Pro feature that uses Anthropic's Claude service. Before it first runs, it shows you exactly what leaves Huru GYM and asks for your go-ahead. It sends:</p>
+<p><strong>What the AI Coach sends.</strong> The Coach is a Pro feature that uses OpenAI's API service. Before it first runs, it shows you exactly what leaves Huru GYM and asks for your go-ahead. It sends:</p>
 <ol>
 <li>Your plan: routines, exercises, sets, reps, schedule and progression settings</li>
 <li>Your training in the period being reviewed: logged sets, targets, effort ratings, durations, records and session notes</li>
@@ -69,7 +70,7 @@
 <li>The answers you gave the Coach, including any limitations you mentioned</li>
 <li>Your units, language and effort scale</li>
 </ol>
-<p>It never sends your name, e-mail address, password, photos or payment details. Anthropic processes this data for us as a service provider, under its commercial terms, and under those terms does not use it to train its models.</p>
+<p>It never sends your name, e-mail address, password, photos or payment details. OpenAI processes this data for us as a service provider, under its business terms and data processing addendum: it does not use data sent through its API to train its models, and keeps it for up to 30 days to detect abuse, then deletes it.</p>
 <p><strong>Turning it off.</strong> Withdraw Coach consent or switch the Coach off in the app, and we delete the Coach data we hold for you on our server straight away.</p>
 
 <h2>5. Who we share it with</h2>
@@ -79,7 +80,8 @@
 <tbody>
 <tr><td>Cloudflare, Inc.</td><td>Domain name, encryption and the secure connection to our server</td><td>All traffic to and from the app, including your IP address, in transit</td><td>United States and worldwide</td></tr>
 <tr><td>Stripe, Inc.</td><td>Takes Pro payments and manages subscriptions</td><td>Your e-mail address, an internal account number, payment details you give Stripe directly</td><td>United States and worldwide</td></tr>
-<tr><td>Anthropic, PBC</td><td>Runs the AI Coach (Pro, with your consent)</td><td>The Coach data listed in section 4</td><td>United States</td></tr>
+<tr><td>OpenAI, L.L.C.</td><td>Runs the AI Coach (Pro, with your consent)</td><td>The Coach data listed in section 4</td><td>United States</td></tr>
+<tr><td>Google LLC (Google Workspace)</td><td>Sends the e-mails we send you, such as password-reset codes, and holds our support mailbox</td><td>Your name, sign-in e-mail address, the reset code, and what you write to support</td><td>United States and worldwide</td></tr>
 <tr><td>Browser and phone push services (Google, Apple, Mozilla)</td><td>Deliver the notifications you turned on</td><td>A push address and the notification text</td><td>United States</td></tr>
 </tbody></table></div>
 <p>The app and its data run on a server operated by AdxFuel LLC. When we move them to a hosting provider, we will name it and its region here before the move.</p>
@@ -95,6 +97,7 @@
 <tr><td>Security log</td><td>90 days</td></tr>
 <tr><td>Push-notification addresses</td><td>Until you turn notifications off or the address stops working</td></tr>
 <tr><td>Subscription and payment records</td><td>As long as tax and accounting law requires, usually up to 7 years</td></tr>
+<tr><td>Password-reset codes</td><td>Stored only as a one-way hash; expire after 60 minutes or when used</td></tr>
 <tr><td>Support messages</td><td>Up to 2 years after our last exchange</td></tr>
 </tbody></table></div>
 <p><strong>How we protect it.</strong> All connections use HTTPS. Passwords are stored only as salted one-way hashes, and passkeys keep your private key on your own device. Session cookies cannot be read by scripts or sent over plain connections. Only staff who run the service can reach the server, and we are adding encrypted backups and full-disk encryption to the server. If a breach puts your data at risk, we will tell you and the authorities as the law requires.</p>

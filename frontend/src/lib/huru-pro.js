@@ -87,3 +87,10 @@ export const needsConsent = me => !!me?.consent && me.consent.accepted === false
 export async function deleteAccount({ confirmName, password }, request = api) {
   return request('/api/huru/account/delete', { method: 'POST', body: JSON.stringify({ confirmName, password: password || undefined }) })
 }
+
+/** Forgot password: the server e-mails a one-time code to the profile with this sign-in e-mail,
+ *  redeemed with passwordResetRedeem (lib/api.js). The answer is the same whether or not the
+ *  address belongs to anyone. */
+export async function requestResetCode(email, request = api) {
+  return request('/api/huru/password/forgot', { method: 'POST', body: JSON.stringify({ email }) })
+}

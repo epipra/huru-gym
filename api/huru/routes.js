@@ -10,14 +10,16 @@
  *      HURU_CONSENT_VERSION (the Privacy Policy / Terms version accounts must accept),
  *      HURU_PRIVACY_URL, HURU_TERMS_URL (shown beside the consent checkboxes).
  *
- * Also here: the consent record (health data + terms) and self-service account deletion.
+ * Also here: the consent record (health data + terms), self-service account deletion, and the
+ * e-mailed password-reset code (mail.js; SMTP_USER, SMTP_PASS, MAIL_FROM).
  * Stripe webhook endpoint: <ORIGIN>/api/huru/stripe/webhook, events checkout.session.completed
  * and customer.subscription.created / .updated / .deleted.
  */
 import * as store from './billing-store.js';
 import * as consent from './consent-store.js';
 import { stripeRequest, verifySignature, StripeError } from './stripe.js';
-import { verifyPassword, passwordLength, MAX_LENGTH } from '../password.js';
+import { verifyPassword, passwordLength, MAX_LENGTH, makeResetCode, hashResetCode, normalizeEmail } from '../password.js';
+import { mailConfig, sendMail } from './mail.js';
 
 const on = v => /^(1|true|yes|on)$/i.test(v || '');
 const MAX_WEBHOOK_BODY = 1 << 20;
@@ -36,7 +38,7 @@ export function billingConfig(env = process.env) {
 }
 
 // Bump when the Privacy Policy or Terms change in a way people must agree to again.
-export const CONSENT_VERSION = '2026-10-11';
+export const CONSENT_VERSION = '2026-10-12';
 
 export function consentConfig(env = process.env) {
   return {
@@ -48,6 +50,36 @@ export function consentConfig(env = process.env) {
 
 // Password guesses against the deletion route: 5 per account per 15 minutes, in memory.
 const DELETE_TRIES = 5, DELETE_WINDOW_MS = 15 * 60000;
+
+// Forgotten-password e-mails: a code lives an hour (upstream's admin code lives a day, but it is
+// handed over in person); per hour, 5 requests per network address and 3 per e-mail address,
+// so the form cannot be used to flood someone's inbox.
+export const FORGOT_TTL_MS = 3600000;
+const FORGOT_WINDOW_MS = 3600000, FORGOT_PER_ADDR = 5, FORGOT_PER_EMAIL = 3;
+
+/** The reset-code e-mail. Plain text: it carries a code, not a link, so nothing in it can be
+ *  rewritten into a phishing link and the code works in the app and the web alike. */
+export function resetEmail({ name, code, site }) {
+  return {
+    subject: 'Your Huru GYM reset code',
+    text: [
+      `Hi ${name},`,
+      '',
+      'Someone asked to reset the password of your Huru GYM profile. Your one-time code is:',
+      '',
+      `    ${code}`,
+      '',
+      'It works once, for the next 60 minutes. In the app, open "Sign in with password", tap',
+      '"Have a reset code?" and enter this e-mail address, the code and a new password.',
+      '',
+      'If you did not ask for this, ignore this e-mail. Your password has not changed.',
+      '',
+      '-- ',
+      'Huru GYM by AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US',
+      site
+    ].join('\n')
+  };
+}
 
 /** The Stripe subscription object, reduced to what the entitlement needs. Newer API versions
  *  moved current_period_end onto the subscription items; both places are read. */
@@ -78,8 +110,19 @@ function readRaw(req) {
   });
 }
 
-export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin, audit, countAdmins, purgeUser, clearCoach, env = process.env, fetchImpl }) {
+export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin, findUser, origin, audit, countAdmins, purgeUser, clearCoach,
+  findByEmail, saveDb, limitAddress = () => 'unknown', mailer = sendMail, env = process.env, fetchImpl }) {
   const deleteTries = new Map();   // uid -> { n, since }
+  const forgotTries = new Map();   // 'a:<address>' | 'e:<email>' -> { n, since }
+  // Counts one request against `key`; the seconds left in its window when it is over `max`.
+  const overLimit = (key, max, now) => {
+    if (forgotTries.size > 10000) for (const [k, v] of forgotTries) if (now - v.since >= FORGOT_WINDOW_MS) forgotTries.delete(k);
+    const cur = forgotTries.get(key);
+    const t = cur && now - cur.since < FORGOT_WINDOW_MS ? cur : { n: 0, since: now };
+    if (t.n >= max) return Math.ceil((t.since + FORGOT_WINDOW_MS - now) / 1000);
+    forgotTries.set(key, { n: t.n + 1, since: t.since });
+    return 0;
+  };
   const base = String(origin || '').replace(/\/+$/, '');
   const stripe = (method, path, params) => stripeRequest(method, path, params, { key: billingConfig(env).key, fetchImpl });
 
@@ -276,6 +319,31 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
       // Logged with the name: the id means nothing once the account is gone.
       audit?.(req, 'huru.account.delete', { user, msg: user.name });
       json(res, 200, { ok: true });
+    },
+
+    // Forgot password: e-mails a one-time code to the profile with that sign-in e-mail, which the
+    // user redeems at upstream's POST /api/login/password-reset. No session, so the answer is the
+    // same whether or not the address belongs to anyone, and the mail goes out after it. The old
+    // password keeps working until a new one is set: asking for a code locks nobody out.
+    'POST /api/huru/password/forgot': async (req, res) => {
+      const mail = mailConfig(env);
+      if (!mail.enabled) return json(res, 503, { error: 'e-mail is not set up on this server', code: 'mail-off' });
+      const body = await readBody(req);
+      const email = normalizeEmail(typeof body.email === 'string' ? body.email.slice(0, 300) : '');
+      if (!email) return json(res, 400, { error: 'that is not an e-mail address', code: 'email-invalid' });
+      const now = Date.now();
+      const wait = overLimit('a:' + limitAddress(req), FORGOT_PER_ADDR, now) || overLimit('e:' + email, FORGOT_PER_EMAIL, now);
+      if (wait) return json(res, 429, { error: 'too many attempts, try again later', code: 'locked', retryAfter: wait }, { 'Retry-After': String(wait) });
+      const user = findByEmail(email);
+      json(res, 200, { ok: true });
+      if (!user || user.disabled) return;
+      const code = makeResetCode();
+      user.pwReset = { h: hashResetCode(code), exp: now + FORGOT_TTL_MS, by: 'email' };
+      saveDb();
+      audit?.(req, 'huru.password.forgot', { user });
+      const host = (() => { try { return new URL(base).hostname; } catch { return 'localhost'; } })();
+      mailer(mail, { to: email, ...resetEmail({ name: user.name, code, site: base }) }, { helo: host })
+        .catch(err => console.error('huru mail: reset code not sent:', err.message));
     },
 
     // Comps for beta testers and friends: Pro for N days without a subscription. days 0 revokes.

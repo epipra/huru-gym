@@ -25,3 +25,18 @@ export const EXERCISE_MEDIA = ENV.VITE_EXERCISE_MEDIA !== '0'
 export function brand(s) {
   return BRANDED && typeof s === 'string' && s.includes(UPSTREAM_NAME) ? s.replaceAll(UPSTREAM_NAME, APP_NAME) : s
 }
+
+// Upstream sentences that are not true of a Huru GYM server, by their English source text. Huru
+// GYM e-mails reset codes (api/huru/mail.js), so "nothing is ever sent" and "only your admin can
+// reset it" would mislead. Used in place of the locale packs' translations (i18n-core.js t()),
+// so these few read in English in every language rather than say something wrong.
+export const TEXT = BRANDED ? {
+  'Lets you sign in with it instead of your name. Nothing is ever sent to it.':
+    'Lets you sign in with it instead of your name, and get a reset code by e-mail if you forget your password.',
+  'Type it at “Sign in with password” instead of your profile name. We never send anything to it; a forgotten password is still reset by your admin.':
+    'Type it at “Sign in with password” instead of your profile name. If you forget your password, we e-mail a reset code to it, and nothing else.',
+  'Enter the code your admin gave you and choose a new password. It signs you out everywhere else.':
+    'Enter the reset code you were sent and choose a new password. It signs you out everywhere else.',
+  'Have a reset code from your admin?': 'Have a reset code?',
+  'That reset code is wrong or has expired. Ask your admin for a new one.': 'That reset code is wrong or has expired. Ask for a new one.'
+} : {}
