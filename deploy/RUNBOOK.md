@@ -71,6 +71,7 @@ The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/
      `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`,
      `customer.subscription.deleted`. Copy its **Signing secret** (`whsec_...`).
    - Settings -> Billing -> Customer portal: enable it (cancel, switch plan, update card).
+   - Settings -> Business -> Public details is **live mode only** (a sandbox refuses it with "Only live keys can access this method"). Set on 2026-10-12: public name AdxFuel LLC, support support@adxfuel.com / +1 307 396 4130, support URL `/legal/delete-account.html`, privacy and terms URLs on gym.adxfuel.com. These apply to the whole AdxFuel LLC Stripe account.
 2. Put the four values into `deploy/.env` (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`), then `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d api`.
 3. Test with card `4242 4242 4242 4242`, any future date, any CVC, from a non-admin test profile.
 4. Live: repeat step 1 in Live mode and swap the four values. Prices shown in the app come from
