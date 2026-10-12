@@ -1,6 +1,6 @@
 # TRD - Huru GYM
 > Linked PRD v1.0 | 2026-10-10 | Strategy: evolve the existing openGym codebase, do not rewrite it
-> **Beta override (see 10):** run upstream's Node API + JSON storage on one VPS with Docker Compose; the Fastify/Postgres/AWS stack below is the scale-up target, adopted together with upstream's database-storage work.
+> **Beta override (see 10):** run upstream's Node API + JSON storage with Docker Compose (today on the owner's PC behind Cloudflare Tunnel, a VPS before paid launch); the Fastify/Postgres/AWS stack below is the scale-up target, adopted together with upstream's database-storage work.
 
 ## 1. Summary of decisions
 | Layer | Choice | Reason |

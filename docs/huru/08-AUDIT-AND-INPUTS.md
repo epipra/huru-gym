@@ -1,5 +1,6 @@
 # Audit & Inputs Needed - Huru GYM
 > 2026-10-10 | Audit of docs 00-07 plus a read-only look at the live upstream code. Read before week 1 starts.
+> **Historical.** The decisions (D1-D4) and inputs 3, 4, 5 and 6 were answered on 2026-10-10 - see 10. Section 1's host map is for the production domain; the beta runs on gym.epipra.com.
 
 ## 1. Domain: hurugym.com
 **Status: not registered** (Verisign RDAP returns 404, DNS returns NXDOMAIN as of 2026-10-10). Register it now, before anything public mentions the name.

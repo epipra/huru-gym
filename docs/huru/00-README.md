@@ -12,24 +12,28 @@ A privacy-first workout and body-weight tracker for web, iOS and Android, built 
 8. `08-AUDIT-AND-INPUTS.md` - audit of these docs against the real upstream code
 9. `09-OUTREACH-DRAFTS.md` - emails to Gym visual and the upstream author
 10. `10-DECISIONS-AND-SOLO-PLAN.md` - **binding decisions and the solo, revenue-first plan; overrides 00-07 where they conflict**
+11. `11-CODE-AUDIT.md` - code audit of openGym v1.4.0 (what Huru builds on)
+
+Current status, findings and the task tracker live in the "Huru GYM - Status & Audit Report" doc; deployment steps in `deploy/RUNBOOK.md`; every change to upstream in `docs/huru/CHANGES.md`.
 
 ## Assumptions
 - Base is github.com/DuarteSantos8/openGym **v1.4.0** (`b1cff63`), tracked as `upstream`; our repo is github.com/epipra/huru-gym. (alexpcosta/opengym is 1,673 commits behind and is not used.)
 - Hosted product with free core and a paid Pro tier (AI Coach and extras).
 - Publisher: AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US. Beta domain gym.epipra.com; production hurugym.com later. Trademark still to be checked.
 - Exercise media must be licensed or replaced before launch.
-- Stack (beta): upstream as-is - React + Vite, Capacitor, Node.js API with JSON storage, Docker Compose on one VPS, Claude API. Fastify/Postgres/AWS from 02 are the scale-up target (see 10).
+- Stack (beta): upstream as-is - React + Vite, Capacitor, Node.js API with JSON storage, Docker Compose, Claude API - plus Huru modules for brand, Pro billing (Stripe), consent and account deletion. Runs on the owner's PC behind Cloudflare Tunnel until a VPS is rented before paid launch. Fastify/Postgres/AWS from 02 are the scale-up target (see 10).
 
 ## Blockers to clear before public launch
 1. Commercial license or replacement for the exercise GIFs and images.
 2. Counsel confirmation of the AGPL app-store permission for a derivative.
-3. Add a Claude Messages API adapter for the hosted Coach (upstream CLI adapters stay for self-hosters).
+3. Privacy Policy and Terms reviewed and published, with links in the app (drafts exist).
 4. Trademark and domain check for "Huru GYM".
+5. Hosting moved off the owner's PC, with backups, before Stripe live mode.
 
 ## How to use with an AI coding tool
-Place all files in `/docs` of the `huru-gym` repo, then paste:
+Paste this when starting a session in the `huru-gym` repo:
 
-"Read every file in /docs before writing code. They are the source of truth: the PRD defines features (FR- IDs), the TRD fixes the stack and monorepo layout, the App Flow defines screens, the Design Brief defines the design system, the Schema defines the database, and 07 lists license and rebrand rules. Start with week 1 of the Implementation Plan: audit the existing code against the reuse map in document 07 and report before changing anything. Then build milestone M1. Never remove upstream copyright or license notices. Do not add features, screens, tables or libraries that are not in the documents; if something is missing or conflicting, ask me first. After each milestone, list which FR- IDs are complete."
+"Read docs/huru/10-DECISIONS-AND-SOLO-PLAN.md first, then 11-CODE-AUDIT.md and deploy/RUNBOOK.md. Huru GYM tracks upstream openGym (remote `upstream`): keep edits to upstream files tiny and put Huru code in new files (`api/huru/`, `frontend/src/lib/brand.js`, `frontend/src/lib/huru-pro.js`, `frontend/src/components/Huru*.jsx`, `deploy/`). Never edit locale packs or `opengym-*` internal identifiers, never ship the Gym visual media, never remove upstream notices. Add every change to docs/huru/CHANGES.md. Linux CI is the reference; some upstream tests fail only on Windows."
 
-## Suggested build order
-Audit and fork -> rebrand and notices -> monorepo, Postgres and auth (M1) -> core training loop and sync (M2) -> insights, notifications, onboarding (M3) -> native apps, Health, billing (M4) -> Coach, admin, marketing, hardening (M5) -> beta -> launch.
+## Build order
+Phases from 10: A fork and beta (done) -> B Pro on the web (built; waiting for Stripe keys, legal pages, e-mail) -> C Android app -> D production on hurugym.com with iOS. Merge each upstream release as it ships.
