@@ -3,12 +3,32 @@
 name: huru-gym
 
 services:
+  # Hands the data volume to the api's unprivileged user before every start (idempotent; also
+  # fixes data written by an older root-run api).
+  data-perms:
+    image: alpine:3.22
+    command: ["sh", "-c", "chown -R 1000:1000 /data && chmod 700 /data"]
+    volumes:
+      - ${HURU_DATA_DIR:-./data}:/data
+    network_mode: none
+    restart: "no"
+
   api:
     build:
       context: ../api
       target: ${API_TARGET:-default}
     image: huru-gym-api:local
     restart: unless-stopped
+    # Huru: not root (audit finding 14). The image's `node` user, no Linux capabilities, no
+    # privilege gain. Upstream's Coach drops to its `coach` user only for the CLI runtimes
+    # (Claude/Codex), which need a root server; the HTTPS providers this deployment uses spawn
+    # nothing and are unaffected (api/coach/jobs.js).
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    depends_on:
+      data-perms:
+        condition: service_completed_successfully
     env_file: .env
     environment:
       - PORT=3000

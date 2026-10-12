@@ -10,6 +10,10 @@ services:
     volumes: !override
       - huru_data:/data
 
+  data-perms:
+    volumes: !override
+      - huru_data:/data
+
   backup:
     volumes: !override
       - huru_data:/data:ro

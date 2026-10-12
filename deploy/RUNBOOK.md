@@ -120,3 +120,12 @@ docker run --rm -v huru-gym_huru_data:/data -v "${PWD}:/restore" alpine sh -c "r
 docker compose -f docker-compose.yml -f docker-compose.tunnel.yml start api
 ```
 Delete the downloaded `.tgz` afterwards: it is the unencrypted data.
+
+## 11. Container hardening
+The api runs as `node` (uid 1000), not root, with `cap_drop: [ALL]` and `no-new-privileges`
+(`docker-compose.yml`). The one-shot `data-perms` service runs `chown -R 1000:1000` on the data
+volume before every api start, so data restored from a backup or written by an older root-run
+api is handed over automatically. Consequence: the Coach's CLI runtimes ("Claude (Anthropic)"
+and "Codex (OpenAI)" chips, `API_TARGET=coach`) refuse every job, because they need a root
+server to drop to their own user. Use an API-key provider (OpenAI, Anthropic API, Gemini or an
+OpenAI-compatible endpoint), as this deployment does, or remove the `user:` line to go back.
