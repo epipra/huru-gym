@@ -92,3 +92,31 @@ a sign-in e-mail (Settings -> Account) can use it; anyone else still gets an adm
    A failed send is logged as `huru mail: reset code not sent: ...` (`docker logs huru-gym-api-1`).
 Limits: 5 requests per network address and 3 per e-mail address an hour; Google allows about
 2,000 messages a day per mailbox.
+
+## 10. Backups (Cloudflare R2)
+The `backup` service (`deploy/backup.sh`, rclone) uploads the whole data volume once a UTC day,
+the first hour the machine is up that day, encrypted with `BACKUP_PASSPHRASE` (file names too),
+to the private R2 bucket `huru-gym-backups` in the AdxFuel LLC Cloudflare account. It keeps 30 days
+(`BACKUP_KEEP_DAYS`) and prunes old ones only after a new one has uploaded. Free under 10 GB.
+1. Cloudflare (AdxFuel LLC) -> R2 -> Manage API Tokens -> Create API token: permission
+   **Object Read & Write**, applied to bucket `huru-gym-backups` only, TTL forever.
+2. Put its Access Key ID and Secret Access Key into `deploy/.env` (`R2_ACCESS_KEY_ID`,
+   `R2_SECRET_ACCESS_KEY`). `R2_ENDPOINT`, `R2_BUCKET` and a random `BACKUP_PASSPHRASE` are already there.
+3. **Copy `BACKUP_PASSPHRASE` into your password manager.** Without it no backup can be decrypted;
+   if this machine dies with the only copy, the backups are useless.
+4. `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d backup`, then
+   `docker logs huru-gym-backup-1` shows `ok: huru-data-YYYY-MM-DD.tgz ...`.
+
+Check or run by hand (tunnel mode; drop the second `-f` on the VPS):
+```
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml exec backup sh /backup.sh list
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml exec backup sh /backup.sh now
+```
+Restore (replaces all current data with the backup; take one first with `now`):
+```
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml run --rm -v "${PWD}:/restore" backup get huru-data-YYYY-MM-DD.tgz
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml stop api
+docker run --rm -v huru-gym_huru_data:/data -v "${PWD}:/restore" alpine sh -c "rm -rf /data/* && tar xzf /restore/huru-data-YYYY-MM-DD.tgz -C /data && ls /data"
+docker compose -f docker-compose.yml -f docker-compose.tunnel.yml start api
+```
+Delete the downloaded `.tgz` afterwards: it is the unencrypted data.

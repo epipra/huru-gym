@@ -10,6 +10,11 @@ services:
     volumes: !override
       - huru_data:/data
 
+  backup:
+    volumes: !override
+      - huru_data:/data:ro
+      - ./backup.sh:/backup.sh:ro
+
   caddy:
     ports: !reset []
     volumes: !override
