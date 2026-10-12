@@ -223,6 +223,27 @@ test('admin grants Pro for a number of days, and only an admin can', async () =>
   assert.equal((await call(h, 'POST /api/huru/admin/grant', users[2], { uid: 'ghost', days: 3 })).code, 404);
 });
 
+test('admin reads one profile’s Pro: free Pro shows until when, and only an admin can ask', async () => {
+  const h = make();
+  const pro = async (asUser, uid) => {
+    const { res } = fakeRes();
+    await h.routes['GET /api/huru/admin/pro'](Object.assign(reqFor(asUser), { url: '/api/huru/admin/pro?uid=' + uid }), res);
+    return res;
+  };
+  assert.equal((await pro(users[0], 'u-free')).code, 403);
+  assert.equal((await pro(users[2], 'ghost')).code, 404);
+  await call(h, 'POST /api/huru/admin/grant', users[2], { uid: 'u-free', days: 30 });
+  const r = await pro(users[2], 'u-free');
+  assert.equal(r.code, 200);
+  assert.equal(r.body.billing, true);
+  assert.equal(r.body.pro, true);
+  assert.ok(r.body.grantUntil > Date.now() + 29 * 86400e3 && r.body.grantUntil <= Date.now() + 30 * 86400e3);
+  await call(h, 'POST /api/huru/admin/grant', users[2], { uid: 'u-free', days: 0 });
+  const after = await pro(users[2], 'u-free');
+  assert.deepEqual([after.body.pro, after.body.grantUntil], [false, null]);
+  assert.deepEqual([(await pro(users[2], 'u-admin')).body.admin, (await pro(users[2], 'u-admin')).body.pro], [true, true]);
+});
+
 test('deleting an account cancels its Stripe subscription first, and keeps everything if that fails', async () => {
   store.update('u-free', { stripeSubscriptionId: 'sub_del', stripeCustomerId: 'cus_del', status: 'active', periodEnd: NOW_S() + 86400 });
   const down = stripeFake({ '*': { status: 500, body: { error: { message: 'down' } } } });

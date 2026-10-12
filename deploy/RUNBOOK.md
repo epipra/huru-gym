@@ -76,7 +76,7 @@ The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/
 3. Test with card `4242 4242 4242 4242`, any future date, any CVC, from a non-admin test profile.
 4. Live: repeat step 1 in Live mode and swap the four values. Prices shown in the app come from
    `VITE_PRO_PRICE_MONTHLY` / `VITE_PRO_PRICE_YEARLY` at build time (defaults $5.99 / $39.99); keep them equal to Stripe.
-5. Comp a tester: `POST /api/huru/admin/grant {"uid": "...", "days": 30}` as an admin (list: `GET /api/huru/admin/billing`).
+5. Comp a tester: Admin dashboard -> tap the profile -> Huru GYM Pro -> Give 30 days / 90 days / 1 year (End free Pro to stop it). Same as `POST /api/huru/admin/grant {"uid": "...", "days": 30}`; one profile's state: `GET /api/huru/admin/pro?uid=...`, everyone with an entry: `GET /api/huru/admin/billing`.
 
 ## 9. Password-reset e-mail
 "Forgot your password?" on the password sign-in sheet e-mails a one-time code (60 minutes, single

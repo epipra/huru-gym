@@ -359,6 +359,21 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
       json(res, 200, { uid: target.id, grantUntil });
     },
 
+    // One profile's Pro, for the admin's user sheet: what they have and why, and any free Pro.
+    'GET /api/huru/admin/pro': async (req, res) => {
+      if (!requireAdmin(req, res)) return;
+      const uid = new URL(req.url, 'http://x').searchParams.get('uid') || '';
+      const target = findUser(uid);
+      if (!target) return json(res, 404, { error: 'no such user' });
+      const e = store.get(uid) || {};
+      const now = Date.now();
+      json(res, 200, {
+        uid, billing: billingConfig(env).enabled, admin: isAdmin(target), pro: proFor(target),
+        status: e.status || null, interval: e.interval || null, periodEnd: e.periodEnd || null,
+        cancelAtPeriodEnd: !!e.cancelAtPeriodEnd, grantUntil: e.grantUntil && e.grantUntil > now ? e.grantUntil : null
+      });
+    },
+
     'GET /api/huru/admin/billing': async (req, res) => {
       if (!requireAdmin(req, res)) return;
       const rows = Object.entries(store.all()).map(([uid, e]) => ({
