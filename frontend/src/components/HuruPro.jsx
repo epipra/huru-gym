@@ -13,6 +13,11 @@ import { Section, Row, Button } from './ui.jsx'
 
 const PRO_NAME = () => `${APP_NAME} Pro`
 
+// A link to a published legal page when the server names one, else the words alone.
+export const LegalLink = ({ href, children }) => href
+  ? <a href={href} target="_blank" rel="noopener">{children}</a>
+  : <>{children}</>
+
 export function usePro() {
   const s = useSyncExternalStore(subscribePro, getProState)
   const uid = useStore(st => st.user?.id || null)
@@ -124,6 +129,11 @@ export function ProScreen({ gated = false }) {
         <p className="small dim" style={{ textAlign: 'center' }}>
           {trial}{plan === 'yearly' ? PRICE_LABELS.yearly + ' ' + t('per year') : PRICE_LABELS.monthly + ' ' + t('per month')}.{' '}
           {t('Secure payment by Stripe. Cancel any time in Settings.')}
+        </p>
+        <p className="small dim" style={{ textAlign: 'center' }}>
+          {t('By starting Pro you accept the')} <LegalLink href={me.consent?.termsUrl}>{t('Terms of Service')}</LegalLink>{' '}
+          {t('and that Pro renews automatically until you cancel.')}{' '}
+          <LegalLink href={me.consent?.privacyUrl}>{t('Privacy Policy')}</LegalLink>
         </p>
       </div>
     </>}

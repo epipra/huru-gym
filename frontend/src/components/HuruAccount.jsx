@@ -81,6 +81,18 @@ function ConsentScreen({ consent }) {
   </div>
 }
 
+/** Settings → Account: the published Privacy Policy and Terms. Hidden until the server names them. */
+export function LegalRows() {
+  const { me } = usePro()
+  const c = me?.consent
+  if (!c?.privacyUrl && !c?.termsUrl) return null
+  const open = url => () => window.open(url, '_blank', 'noopener')
+  return <>
+    {c.privacyUrl && <Row icon="shield" iconTint="var(--blue)" title={t('Privacy Policy')} accessory="chevron" onClick={open(c.privacyUrl)} />}
+    {c.termsUrl && <Row icon="note" iconTint="var(--blue)" title={t('Terms of Service')} accessory="chevron" onClick={open(c.termsUrl)} />}
+  </>
+}
+
 /** Settings → Account. Hidden on a server without Huru. */
 export function DeleteAccountRow() {
   const nav = useNavigate()

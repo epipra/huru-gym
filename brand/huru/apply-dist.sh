@@ -20,6 +20,8 @@ sed -i \
   "$DIST/manifest.json"
 sed -i -e "s#data.title || 'openGym'#data.title || '$NAME'#" "$DIST/sw.js"
 cp "$HERE/icons/icon-180.png" "$DIST/icon-180.png"
+# Privacy Policy, Terms and the account-deletion page, served at /legal/*.html
+mkdir -p "$DIST/legal" && cp "$HERE"/legal/*.html "$HERE"/legal/*.css "$DIST/legal/"
 cp "$HERE/icons/icon-512.png" "$DIST/icon-512.png"
 
 # Fail the build if anything upstream renamed slipped past the substitutions above.

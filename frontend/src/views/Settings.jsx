@@ -1,4 +1,4 @@
-import { DeleteAccountRow } from '../components/HuruAccount.jsx'
+import { DeleteAccountRow, LegalRows } from '../components/HuruAccount.jsx'
 import { ProRow } from '../components/HuruPro.jsx'
 import { APP_NAME, BRANDED, SOURCE_URL, EXERCISE_MEDIA } from '../lib/brand.js'
 import { useEffect, useRef, useState, forwardRef, useSyncExternalStore } from 'react'
@@ -875,6 +875,7 @@ export default function Settings({ page = null, find = null, via = null }) {
           {pwOn && <PasswordRow version={credsV} />}
           <Row icon="signOut" iconTint="var(--red)" title={t('Sign out')} danger onClick={signOutHere} />
           <Row icon="shield" iconTint="var(--red)" title={t('Sign out everywhere')} subtitle={t('Ends this profile’s sessions on all your devices.')} danger onClick={signOutEverywhere} />
+          <LegalRows />
           <DeleteAccountRow />
           <AccountIdRow id={user.id} />
         </> : webauthnOK() ? <>
