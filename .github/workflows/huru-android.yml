@@ -1,0 +1,56 @@
+# Huru GYM Android app: a signed release APK (install on a phone) and AAB (Google Play upload),
+# built by brand/huru/android/build.sh from upstream's Capacitor shell. Run it from the Actions
+# tab (Run workflow) or by pushing a tag huru-android-v*; the files are on the run's page.
+#
+# Secrets (Settings -> Secrets and variables -> Actions): HURU_KEYSTORE_B64 (base64 of the upload
+# keystore) and HURU_KEYSTORE_PASSWORD. Without them the outputs are unsigned.
+name: Huru Android
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['huru-android-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: huru-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.repository == 'epipra/huru-gym'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build and sign
+        env:
+          HURU_VERSION_CODE: ${{ github.run_number }}
+          HURU_KEYSTORE_B64: ${{ secrets.HURU_KEYSTORE_B64 }}
+          HURU_KEYSTORE_PASSWORD: ${{ secrets.HURU_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$HURU_KEYSTORE_B64" ]; then
+            printf '%s' "$HURU_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            export HURU_KEYSTORE="$RUNNER_TEMP/upload.jks"
+          fi
+          sh brand/huru/android/build.sh
+      - uses: actions/upload-artifact@v5
+        with:
+          name: huru-gym-android-${{ github.run_number }}
+          path: dist-android/*
+          if-no-files-found: error
+          retention-days: 30

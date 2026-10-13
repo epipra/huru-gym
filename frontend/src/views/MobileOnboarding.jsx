@@ -1,7 +1,7 @@
 // Mobile build only, first launch: the choice useStore.boot() couldn't make on its own — keep
 // everything on this device, or connect to a self-hosted openGym server instead. See
 // lib/remote.js for the pairing flow this hands off to.
-import { APP_NAME } from '../lib/brand.js'
+import { APP_NAME, DEFAULT_SERVER } from '../lib/brand.js'
 import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
@@ -81,7 +81,7 @@ export function CfAccessSheet({ close, server = '' }) {
 // the sheet says that what the phone kept is merged, not replaced.
 export function ConnectSheet({ close, initialUrl = '', again = false }) {
   const { connectToServer } = useStore()
-  const [url, setUrl] = useState(initialUrl)
+  const [url, setUrl] = useState(initialUrl || DEFAULT_SERVER)
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   // Why the last try failed, under the fields: a toast is gone in two seconds, too soon to read

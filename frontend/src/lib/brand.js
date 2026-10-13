@@ -14,6 +14,9 @@ export const APP_NAME = ENV.VITE_APP_NAME || UPSTREAM_NAME
 export const SITE_HOST = ENV.VITE_SITE_HOST || 'opengym.ch'
 // True for a rebranded build. Hides upstream-only rows (its APK download, its update checker).
 export const BRANDED = APP_NAME !== UPSTREAM_NAME
+// The server a branded mobile app pairs with, filled in on "Connect to my server". Empty upstream:
+// a self-hoster's app has no default server.
+export const DEFAULT_SERVER = BRANDED ? 'https://' + SITE_HOST : ''
 // AGPL section 13: the source of the version users are running. A fork must point at its own repo.
 export const SOURCE_URL = ENV.VITE_SOURCE_URL || 'https://github.com/DuarteSantos8/openGym'
 // The Gym visual exercise stills and animations are licensed to openGym only. A build without its

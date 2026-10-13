@@ -107,8 +107,10 @@ export function ProScreen({ gated = false }) {
     {back === 'cancel' && <div className="card">{t('Checkout was cancelled. Nothing was charged.')}</div>}
     {features}
     {MOBILE ? (
-      <Section footer={t('Upgrade from the web app while signed in to this profile; Pro then appears here too.')}>
-        <Row icon="globe" title={t('Upgrade on the web')} />
+      // Google Play forbids selling or pointing to a non-Play payment for digital features, so
+      // the app neither sells Pro nor says where to buy it; Pro on the account works here.
+      <Section footer={t('If your account already has Pro, it works in this app too.')}>
+        <Row icon="info" title={t('Pro is not sold in the app yet')} />
       </Section>
     ) : !me?.checkout ? (
       <Section footer={t('Payments are not switched on yet. Ask the person who runs this server.')}>
