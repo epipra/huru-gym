@@ -148,3 +148,10 @@ inside the app (the WebView's origin is not gym.adxfuel.com); pairing is the sig
 Pro is not sold in the app (Google Play only allows Play Billing for digital subscriptions);
 Pro bought on the web works in the app. Play Billing is a later step.
 Build script: `brand/huru/android/build.sh` (needs JDK 21 + Android SDK to run elsewhere).
+
+## 13. Uptime alert
+UptimeRobot (free, account of support@epipra.com) checks `https://gym.adxfuel.com/api/health`
+every 5 minutes as monitor **Huru GYM** and e-mails when it is down (any non-2xx: Cloudflare's
+1033/530 tunnel error, or the api's 503 when it cannot write its data). The free plan probes
+with HEAD, which the api does not answer, so Caddy passes `HEAD /api/health` on as a GET
+(`@healthHead` in both Caddyfiles). On the VPS nothing changes: same URL.

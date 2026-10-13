@@ -17,6 +17,14 @@
 		-Server
 	}
 
+	# Uptime monitors probe with HEAD (UptimeRobot's free plan cannot change that) and the api
+	# only answers GET, so HEAD /api/health goes on as a GET; Go drops the body for a HEAD reply.
+	@healthHead {
+		method HEAD
+		path /api/health
+	}
+	method @healthHead GET
+
 	handle /api/* {
 		reverse_proxy api:3000 {
 			transport http {

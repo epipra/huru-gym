@@ -10,6 +10,14 @@
 		-Server
 	}
 
+	# Uptime monitors probe with HEAD (UptimeRobot's free plan cannot change that) and the api
+	# only answers GET, so HEAD /api/health goes on as a GET; Go drops the body for a HEAD reply.
+	@healthHead {
+		method HEAD
+		path /api/health
+	}
+	method @healthHead GET
+
 	# API straight to the api container so it sees the real client address
 	# (the web nginx would overwrite X-Forwarded-For with Caddy's address).
 	handle /api/* {
