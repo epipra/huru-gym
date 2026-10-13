@@ -61,6 +61,12 @@ sed -i \
   "$S"
 grep -q "<string name=\"app_name\">$APP_NAME</string>" "$S" || { echo "strings.xml: app_name not replaced" >&2; exit 1; }
 
+# Google Play allows REQUEST_INSTALL_PACKAGES only to apps whose core purpose is installing apps.
+# It serves upstream's self-updater, which a branded build never shows (Settings.jsx), so it goes.
+M=android/app/src/main/AndroidManifest.xml
+sed -i '/android.permission.REQUEST_INSTALL_PACKAGES/d' "$M"
+if grep -q REQUEST_INSTALL_PACKAGES "$M"; then echo "manifest: REQUEST_INSTALL_PACKAGES still there" >&2; exit 1; fi
+
 # 4. Launcher icon (adaptive and legacy) and splash, from brand/huru/android/assets.
 npx capacitor-assets generate --android --assetPath "$HERE/assets" \
   --iconBackgroundColor '#15803D' --iconBackgroundColorDark '#15803D' \
