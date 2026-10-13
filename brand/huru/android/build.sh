@@ -82,7 +82,11 @@ if [ -n "${HURU_KEYSTORE:-}" ]; then
     --ks-pass env:HURU_KEYSTORE_PASSWORD --key-pass env:HURU_KEYSTORE_PASSWORD \
     --out "$OUT/huru-gym-$NAME.apk" "$OUT/aligned.apk"
   rm -f "$OUT/aligned.apk"
-  "$BT/apksigner" verify --print-certs "$OUT/huru-gym-$NAME.apk" | grep -E "Signer #1 certificate (DN|SHA-256)"
+  # verify's exit status is the check; the certificate lines are only printed (their wording
+  # varies between build-tools versions, so a filter must never decide the outcome).
+  "$BT/apksigner" verify --print-certs "$OUT/huru-gym-$NAME.apk" > "$OUT/apk-certs.txt"
+  grep -E "certificate (DN|SHA-256)" "$OUT/apk-certs.txt" | sort -u || true
+  rm -f "$OUT/apk-certs.txt"
   jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "$HURU_KEYSTORE" \
     -storepass:env HURU_KEYSTORE_PASSWORD -keypass:env HURU_KEYSTORE_PASSWORD \
     -signedjar "$OUT/huru-gym-$NAME.aab" "$AAB" "$ALIAS" >/dev/null
