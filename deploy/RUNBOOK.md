@@ -129,3 +129,22 @@ api is handed over automatically. Consequence: the Coach's CLI runtimes ("Claude
 and "Codex (OpenAI)" chips, `API_TARGET=coach`) refuse every job, because they need a root
 server to drop to their own user. Use an API-key provider (OpenAI, Anthropic API, Gemini or an
 OpenAI-compatible endpoint), as this deployment does, or remove the `user:` line to go back.
+
+## 12. Android app
+Built by GitHub Actions, not on this PC: Actions -> **Huru Android** -> Run workflow (or push a
+tag `huru-android-v<anything>`). About 10-15 minutes; the run page then offers the artifact
+`huru-gym-android-<run>` (a zip) with:
+- `huru-gym-<version>.apk`: install on a phone (allow "install unknown apps" for the browser or
+  file manager). Package `com.adxfuel.hurugym`, so it sits next to any openGym app.
+- `huru-gym-<version>.aab`: the file Google Play takes (Play Console -> Test and release).
+Both are signed with the **upload key** (`D:\DevOps\Huru GYM\secrets\`, not in git; same values
+in the repo's Actions secrets `HURU_KEYSTORE_B64`, `HURU_KEYSTORE_PASSWORD`). Enrol in Play App
+Signing on the first upload, so Google holds the key users' installs are verified against.
+`versionCode` is the workflow run number, so every build can be uploaded after the last.
+
+In the app: the first screen offers "Connect to my server", pre-filled with gym.adxfuel.com; the
+code comes from the website, Settings -> Account -> Pair the mobile app. Passkeys do not work
+inside the app (the WebView's origin is not gym.adxfuel.com); pairing is the sign-in.
+Pro is not sold in the app (Google Play only allows Play Billing for digital subscriptions);
+Pro bought on the web works in the app. Play Billing is a later step.
+Build script: `brand/huru/android/build.sh` (needs JDK 21 + Android SDK to run elsewhere).
