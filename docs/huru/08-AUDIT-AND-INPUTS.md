@@ -1,6 +1,6 @@
 # Audit & Inputs Needed - Huru GYM
 > 2026-10-10 | Audit of docs 00-07 plus a read-only look at the live upstream code. Read before week 1 starts.
-> **Historical.** The decisions (D1-D4) and inputs 3, 4, 5 and 6 were answered on 2026-10-10 - see 10. Section 1's host map is for the production domain; the beta runs on gym.adxfuel.com.
+> **Historical.** The decisions (D1-D4) and inputs 3, 4, 5 and 6 were answered on 2026-10-10 - see 10. Status 2026-10-14: inputs 2 (Cloudflare, AdxFuel LLC account), 7 in part (Google Play, Stripe, OpenAI) and 11 (pricing D10, support@adxfuel.com) are also answered; 1 and 9 (domain, trademark) and 8 (e-mails drafted, not sent) are open. Section 1's host map is for the production domain; the beta runs on gym.adxfuel.com.
 
 ## 1. Domain: hurugym.com
 **Status: not registered** (Verisign RDAP returns 404, DNS returns NXDOMAIN as of 2026-10-10). Register it now, before anything public mentions the name.
@@ -44,7 +44,7 @@ Media notice in upstream `NOTICE.md` explicitly says third parties "have no righ
 6. **Plan:** 23 weeks assumes 3 engineers + designer + QA. If the real team is smaller, the timeline roughly doubles.
 7. **PRD:** no legal-entity country. It drives GDPR role, VAT/sales tax on web subscriptions (Stripe Tax), store payouts and the privacy-policy jurisdiction.
 8. **PRD:** no support email/URL, no pricing range, no Pro trial length; all three are required for store submission.
-9. **07:** Apple requires "Sign in with Apple" when Google sign-in exists - docs already include both, good. Google Play requires a web account-deletion URL - put it on `hurugym.com/delete-account`.
+9. **07:** Apple requires "Sign in with Apple" when Google sign-in exists - docs already include both, good. Google Play requires a web account-deletion URL - live at gym.adxfuel.com/legal/delete-account.html (beta).
 
 ## 4. Decisions needed (blocking)
 - **D1 Fork strategy.** (a) *Hard fork* as docs say: replace backend with Fastify + Postgres now; stop receiving upstream fixes. (b) *Track upstream*: rebrand + hosted layer on top of v1.4.x, merge upstream releases, adopt their database-storage work when it lands. Recommendation: (b) for beta, re-decide at M2 - upstream is shipping fast and the sync contract already exists.
@@ -61,7 +61,7 @@ Media notice in upstream `NOTICE.md` explicitly says third parties "have no righ
 | 4 | GitHub org/account for the public `huru-gym` repo | AGPL source must be public |
 | 5 | Answers to D1-D4 | Architecture and week-1 scope |
 | 6 | Real team size and budget range (monthly infra, one-off for media license and pen test) | Timeline and hosting |
-| 7 | Accounts in the entity's name: Apple Developer (USD 99/yr, D-U-N-S needed for orgs), Google Play (USD 25), AWS, Stripe, RevenueCat, Anthropic API, Sentry, PostHog EU | Long approval lead times, Apple org enrollment can take weeks |
+| 7 | Accounts in the entity's name: Apple Developer (USD 99/yr, D-U-N-S needed for orgs), Google Play (USD 25), AWS, Stripe, RevenueCat, AI model API (OpenAI chosen), Sentry, PostHog EU | Long approval lead times, Apple org enrollment can take weeks |
 | 8 | Emails sent: Gym visual (licence quote), Duarte Santos (app-store permission covers a derivative + name "Huru GYM" OK) | Two launch blockers |
 | 9 | Trademark search result for "Huru GYM" (classes 9, 41, 42) | Avoid rebrand after launch |
 | 10 | Brand assets or designer: logo, colors confirm (Primary `#15803D`), app icon | Design phase |

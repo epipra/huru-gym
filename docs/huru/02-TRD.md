@@ -1,18 +1,18 @@
 # TRD - Huru GYM
 > Linked PRD v1.0 | 2026-10-10 | Strategy: evolve the existing openGym codebase, do not rewrite it
-> **Beta override (see 10):** run upstream's Node API + JSON storage with Docker Compose (today on the owner's PC behind Cloudflare Tunnel, a VPS before paid launch); the Fastify/Postgres/AWS stack below is the scale-up target, adopted together with upstream's database-storage work.
+> **Beta override (see 10):** run upstream's Node API + JSON storage with Docker Compose (today on the owner's PC behind Cloudflare Tunnel, a VPS before paid launch); the Fastify/Postgres/AWS stack below is the scale-up target, adopted together with upstream's database-storage work. Other beta overrides: AI Coach = OpenAI API (upstream HTTPS adapter, key in Admin -> Coach); e-mail = Google Workspace SMTP from support@adxfuel.com (password reset only); billing = Stripe only on the web, RevenueCat later with Play Billing; backups = rclone (encrypted) to Cloudflare R2; no Sentry or other crash reporting in beta.
 
 ## 1. Summary of decisions
 | Layer | Choice | Reason |
 |-------|--------|--------|
-| Web (frontend) | React 19 + Vite, migrated gradually to TypeScript; Zustand and React Router kept; installable PWA | Already built and polished (offline, 12 languages, charts, icons); rewriting would cost months and add no user value |
+| Web (frontend) | React 19 + Vite, migrated gradually to TypeScript; Zustand and React Router kept; installable PWA | Already built and polished (offline, 19 languages, charts, icons); rewriting would cost months and add no user value |
 | Mobile | Capacitor shells (iOS + Android) around the same React build, with native plugins for push, haptics, keep-awake, secure storage, SQLite, Health, share | One codebase for web, iOS and Android (FR-01 to FR-19); repo already ships a Capacitor Android app |
 | Backend | Node.js + TypeScript on Fastify, Zod validation, Drizzle ORM, pg-boss job queue; REST + OpenAPI | Keeps the existing Node ecosystem and passkey library, replaces the framework-less JSON-file server with something production-grade |
 | Database | PostgreSQL (managed), plus on-device storage (IndexedDB on web, SQLite on native) | JSON files cannot support multi-tenant accounts, sync, billing or backups; relational fit for plans, workouts, sets |
 | Cloud deployment | AWS (ECS Fargate, RDS PostgreSQL, S3 + CloudFront, SES, Secrets Manager) behind Cloudflare DNS/WAF | Managed Postgres, backups and compliance tooling for health-adjacent data |
 | Shared logic | `packages/core` (pure TypeScript): progression engine, 1RM, set/PR logic, import parsers | The same code runs on client (offline) and server (verification) |
 | Billing | RevenueCat for Apple/Google subscriptions, Stripe for web; entitlements stored server-side | Store billing is required for in-app digital subscriptions |
-| AI Coach | Anthropic Claude API called from the backend with structured outputs and per-user quotas | Replaces bundled CLI agents, which are meant for self-hosters, not a multi-user service |
+| AI Coach | OpenAI API (beta, through upstream's HTTPS adapter) called from the backend with structured outputs and per-user quotas; planned first as Anthropic | Replaces bundled CLI agents, which are meant for self-hosters, not a multi-user service |
 | Marketing site | Astro static site on S3 + CloudFront | Fast, SEO-friendly, separate from the app |
 
 ## 2. Technology stack
@@ -42,7 +42,7 @@ flowchart LR
   API --> Jobs[pg-boss worker]
   Jobs --> Push[Web Push / APNs / FCM]
   Jobs --> SES[SES email]
-  API --> Coach[Claude API]
+  API --> Coach[OpenAI API]
   API --> S3[(S3 + CloudFront media)]
   Billing[RevenueCat / Stripe webhooks] --> API
   Site[Astro marketing site] --> CDN[CloudFront]
@@ -56,7 +56,7 @@ huru-gym/
   apps/api        Fastify API and workers
   apps/site       Astro marketing site
   packages/core   progression, 1RM, PR logic, parsers (pure TypeScript)
-  packages/i18n   translations (12 languages)
+  packages/i18n   translations (19 languages)
   packages/ui     shared design tokens and components
   infra/          Terraform or CDK, Docker, CI workflows
   docs/           these documents, AGPL notices, runbooks
@@ -68,13 +68,13 @@ huru-gym/
 | Service | Used for | Requirement |
 |---------|----------|-------------|
 | Apple and Google sign-in | Alternative login | FR-02 |
-| Amazon SES | One-time codes, receipts, deletion confirmations | FR-02, FR-16 |
+| Amazon SES (beta: Google Workspace SMTP, password-reset codes only) | One-time codes, receipts, deletion confirmations | FR-02, FR-16 |
 | APNs / FCM / Web Push (VAPID) | Rest alerts and reminders | FR-11 |
-| Anthropic Claude API | AI Coach plan design and reviews | FR-13 |
+| OpenAI API (beta provider) | AI Coach plan design and reviews | FR-13 |
 | RevenueCat and Stripe | Subscriptions and entitlements | FR-14 |
 | Apple HealthKit, Health Connect | Weight sync | FR-15 |
 | Gym visual (licensed) or replacement media | Exercise demonstrations | FR-04 |
-| Sentry | Crash and error reporting (PII scrubbed) | NFR-06 |
+| Sentry (not in beta; update the Privacy Policy and Play data safety before enabling) | Crash and error reporting (PII scrubbed) | NFR-06 |
 | PostHog (EU, opt-in only) | Product analytics | PRD section 5 |
 
 ## 5. Authentication & security
@@ -83,7 +83,7 @@ huru-gym/
 - **Sessions:** web uses HttpOnly Secure SameSite cookies with CSRF protection; native uses short-lived access tokens with rotating refresh tokens in Keychain/Keystore; users can view and revoke sessions.
 - **Hardening:** rate limiting on auth and sync, input validation with Zod on every route, row-level ownership checks on every query, dependency scanning (Dependabot, CodeQL), SBOM per release, secrets only in Secrets Manager.
 - **Admin:** passkey plus fresh re-authentication for sensitive actions; every action written to `audit_logs`.
-- **Privacy by design:** body-weight and training data encrypted at rest (KMS) and never logged; AI requests contain no name or email; account deletion hard-deletes within 30 days and backups age out in 14 days; analytics opt-in only; no advertising SDKs.
+- **Privacy by design:** body-weight and training data encrypted at rest (KMS) and never logged; AI requests contain no name or email; account deletion hard-deletes within 30 days and backups age out in 30 days; analytics opt-in only; no advertising SDKs.
 - **AGPL section 13:** production runs only code published at tagged releases in the public repository; Settings links to the matching source.
 
 ## 6. Environments & deployment
@@ -102,7 +102,7 @@ huru-gym/
 - Backups: automated daily snapshots plus point-in-time recovery; quarterly restore drill (NFR-06).
 
 ## 8. Observability
-Structured JSON logs (CloudWatch), traces via OpenTelemetry for API and jobs, Sentry for web, native and API errors, uptime checks on health endpoints, dashboards for sync error rate, push delivery, coach cost, and subscription webhooks; alerts on error rate, queue depth, and failed migrations.
+Structured JSON logs (CloudWatch), traces via OpenTelemetry for API and jobs, Sentry for web, native and API errors (not in beta), uptime checks on health endpoints, dashboards for sync error rate, push delivery, coach cost, and subscription webhooks; alerts on error rate, queue depth, and failed migrations.
 
 ## 9. Risks & open questions
 | Risk | Impact | Mitigation |
@@ -112,6 +112,6 @@ Structured JSON logs (CloudWatch), traces via OpenTelemetry for API and jobs, Se
 | Passkeys inside Capacitor WebViews | Login failures on some devices | M1 spike; fallbacks (Apple/Google/email); native credential plugin |
 | Apple may reject a thin web wrapper (guideline on minimum functionality) | Delay | Ship real native features: push, haptics, Health, offline SQLite, Live Activity |
 | Subscription rules differ by storefront and change | Revenue and rejection risk | RevenueCat for store billing; re-check current App Review Guidelines before submission |
-| Claude API cost grows with coach usage | Margin | Quotas per tier, compact structured prompts, cached plans, monthly cost alerts |
+| AI model API (OpenAI) cost grows with coach usage | Margin | Quotas per tier, compact structured prompts, cached plans, monthly cost alerts |
 | Sync conflicts and clock skew | Lost or duplicated data | Server-assigned timestamps, idempotency keys, append-only sets, soak tests |
-| Existing code quality unknown (only README read) | Estimate error | Phase 1 audit; adjust plan before development starts |
+| Existing code quality unknown (only README read) | Estimate error | Done: code audited in 11 (2026-10-10) |

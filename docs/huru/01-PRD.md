@@ -4,13 +4,13 @@
 
 ## Assumptions
 Inputs were "take the openGym repo to production as Huru GYM on web, iOS and Android". These assumptions were made after reading the repo README and NOTICE (not the source code). Correct any that are wrong.
-- **Base repo:** github.com/DuarteSantos8/openGym v1.4.0 (upstream now includes the AI Coach). Tracked, not hard-forked (see `10-DECISIONS-AND-SOLO-PLAN.md`).
+- **Base repo:** github.com/DuarteSantos8/openGym v1.4.1 (`464355e`, merged 2026-10-12; forked at v1.4.0; upstream includes the AI Coach). Tracked, not hard-forked (see `10-DECISIONS-AND-SOLO-PLAN.md`).
 - **Hosted product:** Huru GYM becomes a hosted service with accounts and sync. Self-hosting stays possible but is community-supported.
-- **Business model:** free core training and tracking; paid "Huru GYM Pro" adds the AI Coach and advanced extras. Prices decided at launch.
-- **Publisher:** one legal entity (to be confirmed) owns store accounts, privacy policy and terms.
+- **Business model:** free core training and tracking; paid "Huru GYM Pro" adds the AI Coach and advanced extras. Prices decided (D10 in 10): Pro USD 5.99/month or 39.99/year, 7-day trial.
+- **Publisher:** AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US (confirmed) owns store accounts, privacy policy and terms.
 - **Team:** one person (owner) using AI coding tools. Publisher: AdxFuel LLC (Wyoming, US).
 - **Markets:** global, English first; the 19 existing UI languages are kept (Arabic needs RTL QA). EU privacy rules (GDPR) are applied everywhere.
-- **Domain:** beta at gym.adxfuel.com (app + API, same origin); production hurugym.com (unregistered as of 2026-10-10) later.
+- **Domain:** beta at gym.adxfuel.com (app + API, same origin); production hurugym.com later (planned; unregistered as of 2026-10-10, not re-checked since, so check again before relying on it).
 - **Exercise media:** the animations belong to Gym visual; Huru deployments ship without them until our own license is signed.
 
 ## 1. Overview

@@ -19,6 +19,7 @@ The package name is fixed by the first upload: `com.adxfuel.hurugym`. It can nev
 Testing -> Internal testing -> Create new release.
 1. **App signing:** choose *Use Google-generated key* (Play App Signing). Our key (`D:\DevOps\Huru GYM\secrets\huru-upload.jks`) becomes the **upload key**; upload certificate SHA-256 `D8:DC:5C:BA:F5:8B:20:83:F9:EA:4B:E2:B0:C9:D0:C9:26:F9:1C:33:09:B0:14:21:A7:6B:2E:FE:3D:A4:8F:52`.
 2. **App bundle:** upload the `.aab` (not the `.apk`) from the latest *Huru Android* workflow run (also copied to `D:\DevOps\Huru GYM\android-builds\`). Every upload needs a higher version code; each workflow run has one.
+   Latest: 1.4.1-huru.3 AAB ready, not yet uploaded (`D:\DevOps\Huru GYM\android-builds\`).
 3. Release name: the version in the file name (e.g. `1.4.1-huru.3`). Release notes: "First test build of Huru GYM."
 4. Testers tab: create an email list (up to 100 Google accounts), save, copy the **opt-in link** and send it to testers. Internal testing has no review wait.
 
@@ -72,9 +73,8 @@ Data stays on the device only in local mode; the answers cover the account mode,
   - Progress charts for every lift, volume and muscle balance
   - Body weight and measurements, with Health Connect sync
 
-  HURU GYM PRO
+  WITH A HURU GYM PRO ACCOUNT
   - An AI Coach that builds your plan and reviews your training, with every change shown before it applies
-  - 7-day free trial
 
   YOUR DATA IS YOURS
   - No ads, nothing sold
@@ -85,10 +85,11 @@ Data stays on the device only in local mode; the answers cover the account mode,
 
 - **App icon:** `brand/huru/icons/icon-512.png`
 - **Feature graphic (1024x500):** `brand/huru/play/feature-graphic.png`
-- **Phone screenshots:** 2 to 8, portrait, from the app (to do: plan, workout in progress, progress chart, Coach)
+- **Phone screenshots:** 6 phone screenshots, 1080x2160, portrait, in `brand/huru/play/screenshots/` (01-home, 02-workout, 03-plan, 04-stats, 05-history, 06-library; branded demo build, 2026-10-14)
 - **Category:** Health & Fitness. **Tags:** workout tracker, gym, strength training
-- **Contact:** support@adxfuel.com, website https://gym.adxfuel.com
+- **Contact:** support@adxfuel.com, phone +1 307 396 4130 (optional field), website https://gym.adxfuel.com
 
 ## 6. Before production (not for internal testing)
 - Google Play Billing for Pro inside the app (Play policy: digital subscriptions sold in an app go through Play Billing). Until then the app does not sell Pro or point to the web to buy it.
-- Real logo and screenshots; a closed test with real users first.
+- The store listing may advertise the Pro trial and price only once Play Billing sells Pro in the app.
+- Real logo (and screenshots redone with it); a closed test with real users first.

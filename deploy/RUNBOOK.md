@@ -1,17 +1,17 @@
 # Huru GYM - Server runbook
 
-Beta host: `gym.adxfuel.com` on one Ubuntu 24.04 VPS, Docker Compose, Caddy for HTTPS.
+Beta host: `gym.adxfuel.com`. Today it runs on the owner's Windows PC (Docker Desktop) through Cloudflare Tunnel (section 7). Planned: one Ubuntu 24.04 VPS, Docker Compose, Caddy for HTTPS (sections 1-3).
 
 ## 1. One-time server setup (as root)
 ```sh
 apt-get update && apt-get -y upgrade
-apt-get -y install ca-certificates curl git ufw unattended-upgrades restic
+apt-get -y install ca-certificates curl git ufw unattended-upgrades
 curl -fsSL https://get.docker.com | sh
 adduser --disabled-password --gecos "" deploy && usermod -aG docker deploy
 mkdir -p /home/deploy/.ssh && cp ~/.ssh/authorized_keys /home/deploy/.ssh/ && chown -R deploy:deploy /home/deploy/.ssh
 sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/; s/^#\?PermitRootLogin .*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config && systemctl reload ssh
 ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 443/udp && ufw --force enable
-mkdir -p /srv/huru-gym/data && chmod 700 /srv/huru-gym/data   # api container runs as root (upstream image)
+mkdir -p /srv/huru-gym/data && chmod 700 /srv/huru-gym/data   # api runs as uid 1000; data-perms hands the volume over (section 11)
 ```
 
 ## 2. DNS
@@ -32,12 +32,7 @@ docker compose ps && docker compose logs --tail=50 api
 3. `.env`: `INVITE_ONLY=1`. `docker compose up -d`. Invite beta users from the admin dashboard.
 
 ## 5. Backups
-`HURU_DATA_DIR` holds every account, passkey, workout and the session secret. Back it up nightly with restic to object storage (repository + password in `/root/.restic-env`, never in git):
-```sh
-# /etc/cron.d/huru-backup
-30 3 * * * root . /root/.restic-env && restic backup /srv/huru-gym/data --tag huru && restic forget --keep-daily 14 --keep-weekly 8 --prune
-```
-Test a restore monthly: `restic restore latest --target /tmp/restore-test`.
+The data holds every account, passkey, workout and the session secret. Backups: see section 10.
 
 ## 6. Upstream releases
 ```sh
@@ -58,12 +53,14 @@ For running on a PC without a public IP. adxfuel.com DNS is on Cloudflare, so no
 5. Open https://gym.adxfuel.com and continue with section 4.
 **Moving to another domain** (done once, gym.epipra.com -> gym.adxfuel.com on 2026-10-12): every user sets a password first (Settings), because passkeys are bound to `RP_ID` and stop working on the new host; change `HURU_DOMAIN`, `RP_ID`, `ORIGIN`, `HURU_PRIVACY_URL`, `HURU_TERMS_URL` in `.env`; rebuild `web` and restart `api`; update the Stripe webhook URL and public details; add a Cloudflare redirect rule (301, keep path and query) on the old host. Users then sign in with their password and add a new passkey.
 
-The site is only up while this PC and Docker Desktop are running. Data lives in the Docker volume
-`huru-gym_huru_data`; back it up with:
+The site is only up while this PC and Docker Desktop are running (outages: section 14). Data lives
+in the Docker volume `huru-gym_huru_data`. Daily backups: section 10. For an ad-hoc local snapshot
+only (unencrypted; delete it when done):
 `docker run --rm -v huru-gym_huru_data:/data -v ${PWD}:/backup alpine tar czf /backup/huru-data.tgz -C /data .`
 
 ## 8. Huru GYM Pro (Stripe)
 The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/huru/`, `frontend/src/lib/huru-pro.js`, `frontend/src/components/HuruPro.jsx`.
+Status: test mode done (test purchase 2026-10-12). Live: public details and customer e-mails set (trial reminder 7 days before the end, renewals, expiring card, failed card payment, receipts, refunds, one-time "trial over" statement descriptor). Still to do in live mode: products and prices, keys, webhook, customer portal.
 1. Stripe dashboard (AdxFuel LLC), start in **Test mode**:
    - Product Catalog -> Add product `Huru GYM Pro` with two recurring prices: USD 5.99 monthly and USD 39.99 yearly. Copy both price IDs (`price_...`).
    - Developers -> API keys: copy the **Secret key** (`sk_test_...`).
@@ -74,7 +71,7 @@ The AI Coach needs Pro when `HURU_BILLING=1`; admins always have it. Code: `api/
    - Settings -> Business -> Public details is **live mode only** (a sandbox refuses it with "Only live keys can access this method"). Set on 2026-10-12: public name AdxFuel LLC, support support@adxfuel.com / +1 307 396 4130, support URL `/legal/delete-account.html`, privacy and terms URLs on gym.adxfuel.com. These apply to the whole AdxFuel LLC Stripe account.
 2. Put the four values into `deploy/.env` (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`), then `docker compose -f docker-compose.yml -f docker-compose.tunnel.yml up -d api`.
 3. Test with card `4242 4242 4242 4242`, any future date, any CVC, from a non-admin test profile.
-4. Live: repeat step 1 in Live mode and swap the four values. Prices shown in the app come from
+4. Live: repeat step 1 in Live mode (product and prices, secret key, webhook, and the customer portal) and swap the four values. The "manage subscription" link in Stripe's customer e-mails needs the live customer portal. Prices shown in the app come from
    `VITE_PRO_PRICE_MONTHLY` / `VITE_PRO_PRICE_YEARLY` at build time (defaults $5.99 / $39.99); keep them equal to Stripe.
 5. Comp a tester: Admin dashboard -> tap the profile -> Huru GYM Pro -> Give 30 days / 90 days / 1 year (End free Pro to stop it). Same as `POST /api/huru/admin/grant {"uid": "...", "days": 30}`; one profile's state: `GET /api/huru/admin/pro?uid=...`, everyone with an entry: `GET /api/huru/admin/billing`.
 
@@ -121,6 +118,8 @@ docker compose -f docker-compose.yml -f docker-compose.tunnel.yml start api
 ```
 Delete the downloaded `.tgz` afterwards: it is the unencrypted data.
 
+Restore test: on 2026-10-12 the backup/list/restore cycle was tested against a local stand-in, then the first real R2 backup was listed back.
+
 ## 11. Container hardening
 The api runs as `node` (uid 1000), not root, with `cap_drop: [ALL]` and `no-new-privileges`
 (`docker-compose.yml`). The one-shot `data-perms` service runs `chown -R 1000:1000` on the data
@@ -155,3 +154,23 @@ every 5 minutes as monitor **Huru GYM** and e-mails when it is down (any non-2xx
 1033/530 tunnel error, or the api's 503 when it cannot write its data). The free plan probes
 with HEAD, which the api does not answer, so Caddy passes `HEAD /api/health` on as a GET
 (`@healthHead` in both Caddyfiles). On the VPS nothing changes: same URL.
+
+## 14. Docker Desktop outage (PC hosting)
+Symptom: https://gym.adxfuel.com shows Cloudflare error 1033 (UptimeRobot e-mails); `docker` says
+"Docker Desktop is unable to start"; `wsl -l -v` shows `docker-desktop` as Stopped.
+Fix in PowerShell:
+```
+Get-Process "Docker Desktop","com.docker.backend","com.docker.build","docker-agent" -ErrorAction SilentlyContinue | Stop-Process -Force
+wsl --shutdown
+Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+```
+Wait about a minute. The containers restart by themselves (`restart: unless-stopped`). Check
+https://gym.adxfuel.com/api/health. Happened on 2026-10-10 and 2026-10-13. The VPS (sections 1-3)
+removes this.
+
+## 15. AI Coach provider
+Set or rotate the provider key in Admin -> Coach: provider **OpenAI API**, key stored encrypted on
+the server, never in `.env` or chat. The daily per-profile cap is on the same page (upstream default
+10). Test with "Test the Coach". Changing provider means updating the processor list in
+`brand/huru/legal/privacy.html` and bumping `HURU_CONSENT_VERSION` in `deploy/.env`, so everyone
+agrees again.
