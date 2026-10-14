@@ -506,12 +506,13 @@ export default function Settings({ page = null, find = null, via = null }) {
         {/* 'full'/'mini' is also what the tap-toggle on the workout animation writes; 'off' hides
             workout media entirely (library, detail sheet and picker thumbs are unaffected).
             Legacy/unknown values read as 'full'. */}
-        <Row icon="image" iconTint="var(--teal)" title={t('Exercise animations')}>
+        {/* Huru GYM: a build without exercise media has nothing for this switch to change. */}
+        {EXERCISE_MEDIA && <Row icon="image" iconTint="var(--teal)" title={t('Exercise animations')}>
           <Segmented className="seg-inline"
             options={[{ value: 'full', label: t('Full') }, { value: 'mini', label: t('Small') }, { value: 'off', label: t('Hidden') }]}
             value={S.gifSize === 'mini' || S.gifSize === 'off' ? S.gifSize : 'full'}
             onChange={v => update(s => { s.gifSize = v })} />
-        </Row>
+        </Row>}
       </Section>
       <Section>
         <Row icon="wrench" iconTint="var(--grey)" title={t('Fine-tuning')} subtitle={t('Buttons, timed sets')} accessory="chevron" onClick={() => open('advanced')} />

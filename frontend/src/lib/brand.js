@@ -41,5 +41,11 @@ export const TEXT = BRANDED ? {
   'Enter the code your admin gave you and choose a new password. It signs you out everywhere else.':
     'Enter the reset code you were sent and choose a new password. It signs you out everywhere else.',
   'Have a reset code from your admin?': 'Have a reset code?',
-  'That reset code is wrong or has expired. Ask your admin for a new one.': 'That reset code is wrong or has expired. Ask for a new one.'
+  'That reset code is wrong or has expired. Ask your admin for a new one.': 'That reset code is wrong or has expired. Ask for a new one.',
+  // A build without the licensed exercise media has no animations to count.
+  ...(EXERCISE_MEDIA ? {} : {
+    '{0} exercises with animations': '{0} exercises with instructions',
+    '{1} animated exercises + 1 of your own': '{1} exercises + 1 of your own',
+    '{1} animated exercises + {0} of your own': '{1} exercises + {0} of your own'
+  })
 } : {}

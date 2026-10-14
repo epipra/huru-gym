@@ -115,6 +115,8 @@ const pluralCategory = n => {
  * forms of the target language, falling back through `other` to the English pair.
  */
 export function tn(one, other, n, ...rest) {
+  // A brand override (brand.js TEXT) replaces the sentence in every language, plural forms too.
+  if (TEXT[one] || TEXT[other]) return t(n === 1 ? one : other, n, ...rest)
   const forms = dict[other]
   if (forms && typeof forms === 'object') {
     const form = forms[pluralCategory(n)] || forms.other || forms.many || forms.one
