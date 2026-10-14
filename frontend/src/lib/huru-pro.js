@@ -94,3 +94,13 @@ export async function deleteAccount({ confirmName, password }, request = api) {
 export async function requestResetCode(email, request = api) {
   return request('/api/huru/password/forgot', { method: 'POST', body: JSON.stringify({ email }) })
 }
+
+/** Mails a 6-digit code to the signed-in profile's sign-in e-mail (api/huru/email-store.js). */
+export async function sendEmailCode(request = api) {
+  return request('/api/huru/email/send-code', { method: 'POST', body: '{}' })
+}
+
+/** Confirms the sign-in e-mail with that code. */
+export async function verifyEmailCode(code, request = api) {
+  return request('/api/huru/email/verify', { method: 'POST', body: JSON.stringify({ code }) })
+}

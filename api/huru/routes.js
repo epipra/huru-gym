@@ -17,6 +17,7 @@
  */
 import * as store from './billing-store.js';
 import * as consent from './consent-store.js';
+import * as emails from './email-store.js';
 import { stripeRequest, verifySignature, StripeError } from './stripe.js';
 import { verifyPassword, passwordLength, MAX_LENGTH, makeResetCode, hashResetCode, normalizeEmail } from '../password.js';
 import { mailConfig, sendMail } from './mail.js';
@@ -59,6 +60,29 @@ const FORGOT_WINDOW_MS = 3600000, FORGOT_PER_ADDR = 5, FORGOT_PER_EMAIL = 3;
 
 /** The reset-code e-mail. Plain text: it carries a code, not a link, so nothing in it can be
  *  rewritten into a phishing link and the code works in the app and the web alike. */
+/** The code that confirms a sign-in e-mail. */
+export function verifyEmail({ name, code, site }) {
+  return {
+    subject: 'Confirm your Huru GYM e-mail',
+    text: [
+      `Hi ${name},`,
+      '',
+      'Enter this code in Huru GYM to confirm this is your e-mail address:',
+      '',
+      `    ${code}`,
+      '',
+      'It works for the next 30 minutes. Once confirmed, this is where we send a code if you',
+      'ever forget your password.',
+      '',
+      'If you did not ask for this, ignore this e-mail.',
+      '',
+      '-- ',
+      'Huru GYM by AdxFuel LLC, 30 N Gould St Ste R, Sheridan, WY 82801, US',
+      site
+    ].join('\n')
+  };
+}
+
 export function resetEmail({ name, code, site }) {
   return {
     subject: 'Your Huru GYM reset code',
@@ -164,7 +188,8 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
         plans: { monthly: !!cfg.prices.monthly, yearly: !!cfg.prices.yearly },
         checkout: cfg.enabled && !!cfg.key,
         consent: { ...consentConfig(env), accepted: consent.accepted(user.id, consentConfig(env).version) },
-        hasPassword: !!user.pw?.h
+        hasPassword: !!user.pw?.h,
+        email: { address: user.email || null, verified: emails.isVerified(user.id, user.email) }
       });
     },
 
@@ -314,6 +339,7 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
       try { clearCoach?.(user.id); } catch (err) { console.error('huru delete: coach data', err.message); }
       store.remove(user.id);
       consent.remove(user.id);
+      emails.remove(user.id);
       deleteTries.delete(user.id);
       purgeUser(user);
       // Logged with the name: the id means nothing once the account is gone.
@@ -336,7 +362,8 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
       if (wait) return json(res, 429, { error: 'too many attempts, try again later', code: 'locked', retryAfter: wait }, { 'Retry-After': String(wait) });
       const user = findByEmail(email);
       json(res, 200, { ok: true });
-      if (!user || user.disabled) return;
+      // Only to an address the account has confirmed: a typo must not send a stranger the code.
+      if (!user || user.disabled || !emails.isVerified(user.id, email)) return;
       const code = makeResetCode();
       user.pwReset = { h: hashResetCode(code), exp: now + FORGOT_TTL_MS, by: 'email' };
       saveDb();
@@ -344,6 +371,44 @@ export function huruRoutes({ json, readBody, readSession, requireAdmin, isAdmin,
       const host = (() => { try { return new URL(base).hostname; } catch { return 'localhost'; } })();
       mailer(mail, { to: email, ...resetEmail({ name: user.name, code, site: base }) }, { helo: host })
         .catch(err => console.error('huru mail: reset code not sent:', err.message));
+    },
+
+    // Confirm the signed-in account's sign-in e-mail: a 6-digit code to that address, typed back.
+    'POST /api/huru/email/send-code': async (req, res) => {
+      const user = readSession(req);
+      if (!user) return json(res, 401, { error: 'not signed in' });
+      if (!user.email) return json(res, 400, { error: 'add a sign-in e-mail first', code: 'no-email' });
+      const mail = mailConfig(env);
+      if (!mail.enabled) return json(res, 503, { error: 'e-mail is not set up on this server', code: 'mail-off' });
+      if (emails.isVerified(user.id, user.email)) return json(res, 200, { ok: true, verified: true });
+      const wait = overLimit('v:' + user.id, FORGOT_PER_EMAIL, Date.now());
+      if (wait) return json(res, 429, { error: 'too many attempts, try again later', code: 'locked', retryAfter: wait }, { 'Retry-After': String(wait) });
+      const code = emails.newCode(user.id, user.email);
+      const host = (() => { try { return new URL(base).hostname; } catch { return 'localhost'; } })();
+      try {
+        await mailer(mail, { to: user.email, ...verifyEmail({ name: user.name, code, site: base }) }, { helo: host });
+      } catch (err) {
+        console.error('huru mail: confirmation code not sent:', err.message);
+        return json(res, 502, { error: 'the e-mail could not be sent, try again in a moment', code: 'mail-failed' });
+      }
+      json(res, 200, { ok: true, verified: false });
+    },
+    'POST /api/huru/email/verify': async (req, res) => {
+      const user = readSession(req);
+      if (!user) return json(res, 401, { error: 'not signed in' });
+      const body = await readBody(req);
+      const code = String(body.code || '').replace(/\D/g, '').slice(0, 6);
+      if (!user.email) return json(res, 400, { error: 'add a sign-in e-mail first', code: 'no-email' });
+      const r = emails.check(user.id, user.email, code);
+      if (r === 'ok') {
+        audit?.(req, 'huru.email.verified', { user });
+        return json(res, 200, { verified: true });
+      }
+      const why = {
+        none: 'ask for a new code first', expired: 'that code has expired, ask for a new one',
+        locked: 'too many wrong codes, ask for a new one', wrong: 'that code is not right'
+      }[r];
+      json(res, 400, { error: why, code: 'code-' + r });
     },
 
     // Comps for beta testers and friends: Pro for N days without a subscription. days 0 revokes.

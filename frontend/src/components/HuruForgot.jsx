@@ -58,7 +58,7 @@ export function ForgotPasswordSheet({ close }) {
   return <>
     <h3>{t('Forgot your password?')}</h3>
     {step === 'email' ? <>
-      <div className="muted small" style={{ marginBottom: 14 }}>{t('Enter the sign-in e-mail of your profile. We e-mail you a code to set a new password.')}</div>
+      <div className="muted small" style={{ marginBottom: 14 }}>{t('Enter the confirmed sign-in e-mail of your profile. We e-mail you a code to set a new password.')}</div>
       <form onSubmit={send} noValidate>
         <input ref={emailRef} className="input" type="email" name="email" autoComplete="email" inputMode="email" placeholder={t('E-mail address')} maxLength={254}
           value={email} onChange={e => setEmail(e.target.value)} {...field} />
@@ -66,10 +66,10 @@ export function ForgotPasswordSheet({ close }) {
         <div style={{ height: 12 }} />
         <Button type="submit" variant="primary" disabled={busy}>{t('E-mail me a code')}</Button>
       </form>
-      <div className="dim small" style={{ marginTop: 10 }}>{t('No sign-in e-mail on your profile? Ask your admin for a reset code.')}</div>
+      <div className="dim small" style={{ marginTop: 10 }}>{t('No confirmed sign-in e-mail on your profile? Ask your admin for a reset code.')}</div>
     </> : <>
       <div className="muted small" style={{ marginBottom: 14, overflowWrap: 'anywhere' }}>
-        {t('If {0} belongs to a profile with a password, a code is on its way. It works once, for 60 minutes. Check your spam folder too.', clean)}
+        {t('If {0} is the confirmed sign-in e-mail of a profile, a code is on its way. It works once, for 60 minutes. Check your spam folder too.', clean)}
       </div>
       <form onSubmit={redeem} noValidate>
         <input type="text" name="username" autoComplete="username" value={clean} readOnly hidden />

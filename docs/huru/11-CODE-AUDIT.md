@@ -1,6 +1,6 @@
 # Code Audit - openGym v1.4.0 (`b1cff63`) for Huru GYM
 > 2026-10-10 | Read-only audit. Paths are relative to the repo root. This is the week-1 deliverable that 06 and 07 ask for.
-> **Snapshot of upstream v1.4.0** (v1.4.1 merged since). Added by Huru since: Stripe billing and the Pro gate (`api/huru/`), the no-media build flag (`VITE_EXERCISE_MEDIA=0`), the consent screen and account deletion, password-reset e-mail (Google Workspace SMTP), encrypted R2 backups, the non-root api, free Pro from the admin sheet, and the Android app id `com.adxfuel.hurugym` with Huru icons. Still missing: e-mail address verification, crash reporting.
+> **Snapshot of upstream v1.4.0** (v1.4.1 merged since). Added by Huru since: Stripe billing and the Pro gate (`api/huru/`), the no-media build flag (`VITE_EXERCISE_MEDIA=0`), the consent screen and account deletion, password-reset e-mail (Google Workspace SMTP), encrypted R2 backups, the non-root api, free Pro from the admin sheet, and the Android app id `com.adxfuel.hurugym` with Huru icons. Sign-in e-mail confirmation added 2026-10-14. Still missing: crash reporting.
 
 ## 1. What is there
 | Area | Facts |

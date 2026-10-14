@@ -1,4 +1,5 @@
 import { DeleteAccountRow, LegalRows } from '../components/HuruAccount.jsx'
+import { EmailConfirmRow } from '../components/HuruEmail.jsx'
 import { ProRow } from '../components/HuruPro.jsx'
 import { APP_NAME, BRANDED, SOURCE_URL, EXERCISE_MEDIA } from '../lib/brand.js'
 import { useEffect, useRef, useState, forwardRef, useSyncExternalStore } from 'react'
@@ -875,6 +876,7 @@ export default function Settings({ page = null, find = null, via = null }) {
           <Row icon="qr" iconTint="var(--blue)" title={t('Pair the mobile app')} subtitle={t('Connect the openGym app on your phone to this account.')} accessory="chevron"
             onClick={() => useUI.getState().openSheet(close => <PairSheet close={close} />)} />
           {pwOn && <PasswordRow version={credsV} />}
+          {pwOn && <EmailConfirmRow />}
           <Row icon="signOut" iconTint="var(--red)" title={t('Sign out')} danger onClick={signOutHere} />
           <Row icon="shield" iconTint="var(--red)" title={t('Sign out everywhere')} subtitle={t('Ends this profile’s sessions on all your devices.')} danger onClick={signOutEverywhere} />
           <LegalRows />

@@ -25,10 +25,15 @@ async function startServer(t, smtpPort) {
     users: [
       { id: 'u_adm_1', name: 'Owner', created, admin: true },
       { id: LENA, name: 'Lena', created, email: 'lena@example.com', pw: { h: await hashPassword(OLD), set: created } },
-      { id: 'u_off_1', name: 'Gone', created, email: 'gone@example.com', disabled: true, pw: { h: await hashPassword(OLD), set: created } }
+      { id: 'u_off_1', name: 'Gone', created, email: 'gone@example.com', disabled: true, pw: { h: await hashPassword(OLD), set: created } },
+      { id: 'u_unv_1', name: 'Tom', created, email: 'tom@example.com', pw: { h: await hashPassword(OLD), set: created } }
     ],
     creds: [], subs: [], invites: []
   }));
+  // Lena and Gone confirmed their addresses (api/huru/email-store.js); Tom never did.
+  fs.writeFileSync(path.join(dataDir, 'huru-email.json'), JSON.stringify({ users: {
+    [LENA]: { email: 'lena@example.com', verifiedAt: 1 }, u_off_1: { email: 'gone@example.com', verifiedAt: 1 }
+  } }));
   const smtp = smtpPort ? { SMTP_HOST: '127.0.0.1', SMTP_PORT: String(smtpPort), SMTP_SECURE: '0', SMTP_USER: 'support@example.com', SMTP_PASS: 'pw', MAIL_FROM: 'Huru GYM <support@example.com>' } : {};
   const env = { ...process.env, PORT: '0', DATA_DIR: dataDir, ORIGIN, RP_ID: 'localhost', PASSWORD_LOGIN: '1', ...smtp };
   if (!smtpPort) for (const k of ['SMTP_USER', 'SMTP_PASS']) delete env[k];
@@ -86,16 +91,17 @@ test('forgot: mails a code that sets a new password; the old one works until the
   assert.equal((await h.post('/api/login/password-reset', { identifier: 'lena@example.com', code, next: OLD })).status, 400);
 });
 
-test('forgot: the same answer for an unknown or disabled address, and nothing is sent', async t => {
+test('forgot: the same answer for an unknown, disabled or unconfirmed address, and nothing is sent', async t => {
   const smtp = await fakeSmtp(t);
   const h = await startServer(t, smtp.port);
-  for (const email of ['nobody@example.com', 'gone@example.com']) {
+  for (const email of ['nobody@example.com', 'gone@example.com', 'tom@example.com']) {
     const r = await h.forgot(email);
     assert.deepEqual([r.status, r.body], [200, { ok: true }]);
   }
   await new Promise(r => setTimeout(r, 300));
   assert.equal(smtp.messages.length, 0);
   assert.equal(h.db().users.find(u => u.id === 'u_off_1').pwReset, undefined);
+  assert.equal(h.db().users.find(u => u.id === 'u_unv_1').pwReset, undefined);
 });
 
 test('forgot: 3 mails per address an hour, then 429 with Retry-After', async t => {

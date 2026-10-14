@@ -37,7 +37,7 @@ export const TEXT = BRANDED ? {
   'Lets you sign in with it instead of your name. Nothing is ever sent to it.':
     'Lets you sign in with it instead of your name, and get a reset code by e-mail if you forget your password.',
   'Type it at “Sign in with password” instead of your profile name. We never send anything to it; a forgotten password is still reset by your admin.':
-    'Type it at “Sign in with password” instead of your profile name. If you forget your password, we e-mail a reset code to it, and nothing else.',
+    'Type it at “Sign in with password” instead of your profile name. Once you confirm it, we e-mail a reset code to it if you forget your password, and nothing else.',
   'Enter the code your admin gave you and choose a new password. It signs you out everywhere else.':
     'Enter the reset code you were sent and choose a new password. It signs you out everywhere else.',
   'Have a reset code from your admin?': 'Have a reset code?',
