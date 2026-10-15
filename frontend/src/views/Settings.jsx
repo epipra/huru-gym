@@ -1,7 +1,7 @@
 import { DeleteAccountRow, LegalRows } from '../components/HuruAccount.jsx'
 import { EmailConfirmRow } from '../components/HuruEmail.jsx'
 import { ProRow } from '../components/HuruPro.jsx'
-import { APP_NAME, BRANDED, SOURCE_URL, EXERCISE_MEDIA } from '../lib/brand.js'
+import { APP_NAME, BRANDED, SOURCE_URL, EXERCISE_MEDIA, FILE_PREFIX } from '../lib/brand.js'
 import { useEffect, useRef, useState, forwardRef, useSyncExternalStore } from 'react'
 import { useNavigate, useParams, useLocation, Navigate } from 'react-router-dom'
 import { useStore, DEF, hasData } from '../store/useStore.js'
@@ -260,7 +260,7 @@ export default function Settings({ page = null, find = null, via = null }) {
   // and the copy it exports is the one that has not reached the server.
   const doExport = async () => {
     const json = JSON.stringify(useStore.getState().S, null, 2)
-    const name = 'opengym-backup-' + todayISO() + '.json'
+    const name = FILE_PREFIX + '-backup-' + todayISO() + '.json'
     // WKWebView can't download blob URLs — the native build hands the file to the share sheet.
     if (MOBILE) {
       try { await shareExport(json, name); toast(t('Backup exported')) } catch (e) { /* share sheet dismissed */ }
@@ -280,7 +280,7 @@ export default function Settings({ page = null, find = null, via = null }) {
     let out
     try { out = await exportBackupZip(st.S, { fetchOne: signedIn ? fetchToStore : null }) }
     catch { toast(t('Something went wrong')); return }
-    const name = 'opengym-backup-' + todayISO() + '.zip'
+    const name = FILE_PREFIX + '-backup-' + todayISO() + '.zip'
     if (out.missing) toast(tn('{0} file could not be included', '{0} files could not be included', out.missing))
     if (MOBILE) {
       try { await shareExportBlob(out.blob, name); if (!out.missing) toast(t('Backup exported')) } catch (e) { /* share sheet dismissed */ }
@@ -837,7 +837,8 @@ export default function Settings({ page = null, find = null, via = null }) {
           which build you are running, or whether an update actually installed. */}
       <div className="dim small sp-version">
         {APP_NAME} v{__APP_VERSION__} · {t('free & open source (AGPL v3)')}<br />
-        {BRANDED && <>Based on <a href="https://github.com/DuarteSantos8/openGym" target="_blank" rel="noopener">openGym</a> by Duarte Santos<br /></>}
+        {/* The copyright notice AGPL-3.0 section 5(d) asks a modified version's interface to show. */}
+        {BRANDED && <>© AdxFuel LLC · includes openGym © Duarte Santos and contributors (<a href={SOURCE_URL + '/blob/main/NOTICE.md'} target="_blank" rel="noopener">notices</a>)<br /></>}
         <a href={SOURCE_URL} target="_blank" rel="noopener">{t('Source code')}</a><br />
         {/* Attribution the media licence asks for word for word (agreement §8c), so it is not translated */}
         {EXERCISE_MEDIA && <>Exercise media © Aliaksandr Makatserchyk, <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym visual</a>, gymvisual.com.

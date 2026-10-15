@@ -15,6 +15,7 @@ import { askAddDeviceData, menuSheet } from '../sheets.jsx'
 import { ConnectSheet, CfAccessSheet } from '../views/MobileOnboarding.jsx'
 import { passwordOn, openPasswordSignIn } from './PasswordAuth.jsx'
 import { Section, Row, Button } from './ui.jsx'
+import { FILE_PREFIX } from '../lib/brand.js'
 
 const ui = () => useUI.getState()
 const toast = m => ui().toast(m)
@@ -303,7 +304,7 @@ export function KeptChangesRows() {
     const state = await useStore.getState().keptState(k.server, k.uid)
     if (!state) return
     const json = JSON.stringify(state, null, 2)
-    const name = 'opengym-kept-' + String(k.name || k.uid).replace(/[^\w-]+/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.json'
+    const name = FILE_PREFIX + '-kept-' + String(k.name || k.uid).replace(/[^\w-]+/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.json'
     if (MOBILE) { try { await shareExport(json, name); useUI.getState().toast(t('Backup exported')) } catch { /* share sheet dismissed */ } return }
     const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' })); a.download = name; a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 60000)

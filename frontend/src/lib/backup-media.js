@@ -24,19 +24,22 @@ import { sha256Hex } from './sha256.js'
 import { mediaStore } from './media-store.js'
 import { DEFAULT_LIMITS, MB } from './media-limits.js'
 import { t } from './i18n-core.js'
+import { APP_NAME, FILE_PREFIX } from './brand.js'
 
-export const BACKUP_JSON = 'opengym-backup.json'
+export const BACKUP_JSON = FILE_PREFIX + '-backup.json'
+// What zips written before the name followed the brand carry; still read on import.
+const LEGACY_BACKUP_JSON = 'opengym-backup.json'
 const MEDIA_ENTRY = /^media\/([0-9a-f]{64})\.(jpg|png|webp|gif|mp4|mov|webm)$/
 
-const README = `openGym backup with photos and videos
+const README = `${APP_NAME} backup with photos and videos
 =====================================
 
-opengym-backup.json  your data - the same file "Export backup (JSON)" writes.
+${BACKUP_JSON}  your data - the same file "Export backup (JSON)" writes.
 media/               the photos, GIFs and videos of your own exercises and of your
                      workouts, each named by its SHA-256, plus the small previews
                      shown in lists.
 
-To bring it back: openGym -> Settings -> Data & backup -> Import backup, and pick this .zip as it is.
+To bring it back: ${APP_NAME} -> Settings -> Data & backup -> Import backup, and pick this .zip as it is.
 Do not unpack and re-zip it: the app reads zips that are stored, not compressed.
 `
 
@@ -83,7 +86,7 @@ export async function exportBackupZip(S, { media = mediaStore, fetchOne = null, 
 
 const isBackup = d => !!d && typeof d === 'object' && !Array.isArray(d) && Array.isArray(d.workouts) && Array.isArray(d.routines)
 
-const notBackup = () => Object.assign(new Error('not an openGym backup'), { code: 'not-backup' })
+const notBackup = () => Object.assign(new Error('not an ' + APP_NAME + ' backup'), { code: 'not-backup' })
 
 /**
  * What to tell someone whose pick did not import, in their language. The thrown messages are for
@@ -106,7 +109,7 @@ export async function readBackupFile(file) {
   const zip = await looksLikeZip(file)
   if (zip) {
     const entries = await readZip(file)
-    const json = entries.find(e => e.name === BACKUP_JSON)
+    const json = entries.find(e => e.name === BACKUP_JSON || e.name === LEGACY_BACKUP_JSON)
     if (!json) throw notBackup()
     state = JSON.parse(await json.blob.text())
     if (!isBackup(state)) throw notBackup()

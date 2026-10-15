@@ -81,7 +81,7 @@ Data stays on the device only in local mode; the answers cover the account mode,
   - Use it on your phone only, or sync with your account across devices
   - Export or delete everything at any time
 
-  Huru GYM is made by AdxFuel LLC and based on the open-source openGym project (AGPL-3.0). Source code: https://github.com/epipra/huru-gym
+  Huru GYM is made by AdxFuel LLC. Free and open source under AGPL-3.0: https://github.com/epipra/huru-gym
 
 - **App icon:** `brand/huru/icons/icon-512.png`
 - **Feature graphic (1024x500):** `brand/huru/play/feature-graphic.png`

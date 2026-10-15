@@ -14,6 +14,10 @@ export const APP_NAME = ENV.VITE_APP_NAME || UPSTREAM_NAME
 export const SITE_HOST = ENV.VITE_SITE_HOST || 'opengym.ch'
 // True for a rebranded build. Hides upstream-only rows (its APK download, its update checker).
 export const BRANDED = APP_NAME !== UPSTREAM_NAME
+// The name's file-name form, for files people download or find on their phone: backups, exports,
+// shared plans ("opengym" upstream, "hurugym" for Huru GYM). Internal storage keys keep upstream's
+// names, so data already on a device stays where the app looks for it.
+export const FILE_PREFIX = APP_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '')
 // The server a branded mobile app pairs with, filled in on "Connect to my server". Empty upstream:
 // a self-hoster's app has no default server.
 export const DEFAULT_SERVER = BRANDED ? 'https://' + SITE_HOST : ''
