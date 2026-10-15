@@ -26,7 +26,7 @@
 |-------|-------|-------|--------------|
 | A Fork & beta | 1-2 | Fork to epipra/huru-gym, code audit, brand layer (name, icons, colors, app ids, RP name), media off, NOTICE/CHANGELOG, VPS + Caddy + backups, deploy gym.adxfuel.com, invite-only signups. Status: done, backups included; VPS pending | Beta live with 10-20 real lifters |
 | B Pro on web | 3-5 | Coach on the OpenAI API (existing adapter) + Pro gating + quotas, e-mail recovery, Stripe Checkout + Customer Portal + webhooks, entitlements, paywall, Privacy Policy, Terms, account deletion page. Status: Stripe test mode done (test purchase 2026-10-12); live switch pending | First paying user |
-| C Android | 6-8 | Rebranded Capacitor Android app synced to gym.adxfuel.com, Play Billing via RevenueCat, Play listing + data safety form, closed test (Play requires 12 testers / 14 days for new personal accounts; org account avoids this). Status: AdxFuel LLC org account exists; AAB 1.4.1-huru.3 built, not uploaded yet | Play approval |
+| C Android | 6-8 | Rebranded Capacitor Android app synced to gym.adxfuel.com, Play Billing via RevenueCat, Play listing + data safety form, closed test (Play requires 12 testers / 14 days for new personal accounts; org account avoids this). Status: AdxFuel LLC org account exists; AAB 1.4.1-huru.4 built, not uploaded yet | Play approval |
 | D Production | 9-12 | hurugym.com cut-over, marketing site (Astro on Cloudflare Pages, free), iOS app, media (if licensed) | MRR covers infra + Apple fee |
 | Later | - | Postgres/managed DB, AWS, admin extensions, Health sync on iOS, imports beyond upstream | Scale |
 

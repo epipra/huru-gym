@@ -19,8 +19,8 @@ The package name is fixed by the first upload: `com.adxfuel.hurugym`. It can nev
 Testing -> Internal testing -> Create new release.
 1. **App signing:** choose *Use Google-generated key* (Play App Signing). Our key (`D:\DevOps\Huru GYM\secrets\huru-upload.jks`) becomes the **upload key**; upload certificate SHA-256 `D8:DC:5C:BA:F5:8B:20:83:F9:EA:4B:E2:B0:C9:D0:C9:26:F9:1C:33:09:B0:14:21:A7:6B:2E:FE:3D:A4:8F:52`.
 2. **App bundle:** upload the `.aab` (not the `.apk`) from the latest *Huru Android* workflow run (also copied to `D:\DevOps\Huru GYM\android-builds\`). Every upload needs a higher version code; each workflow run has one.
-   Latest: 1.4.1-huru.3 AAB ready, not yet uploaded (`D:\DevOps\Huru GYM\android-builds\`).
-3. Release name: the version in the file name (e.g. `1.4.1-huru.3`). Release notes: "First test build of Huru GYM."
+   Latest: 1.4.1-huru.4 AAB ready, not yet uploaded (`D:\DevOps\Huru GYM\android-builds\`).
+3. Release name: the version in the file name (e.g. `1.4.1-huru.4`). Release notes: "First test build of Huru GYM."
 4. Testers tab: create an email list (up to 100 Google accounts), save, copy the **opt-in link** and send it to testers. Internal testing has no review wait.
 
 ## 3. App content (Policy -> App content)
